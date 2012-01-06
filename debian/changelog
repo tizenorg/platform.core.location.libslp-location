@@ -1,0 +1,439 @@
+libslp-location (0.3.31-3) unstable; urgency=low
+
+  * Change PKG name to "org.tizen" in test codes.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.31-3
+
+ -- Yunhan Kim <yhan.kim@samsung.com>  Fri, 23 Dec 2011 20:04:55 +0900
+
+libslp-location (0.3.31-2) unstable; urgency=low
+
+  * check a method before creating its object.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.31-2
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 19 Dec 2011 21:34:46 +0900
+
+libslp-location (0.3.31-1) unstable; urgency=low
+
+  * change default value of location serverce from 'On' to 'Off'
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.31-1
+
+ -- Genie Kim <daejins.kim@samsung.com>  Thu, 08 Dec 2011 20:08:49 +0900
+
+libslp-location (0.3.30-1) unstable; urgency=low
+
+  * add an empty body of location_send_command & support exception case
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.30-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Tue, 06 Dec 2011 17:05:16 +0900
+
+libslp-location (0.3.29-1) unstable; urgency=low
+
+  * Support multi boundaries & add new API, location_is_enabled_gps
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.29-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Thu, 03 Nov 2011 22:16:21 +0900
+
+libslp-location (0.3.28-1) unstable; urgency=low
+
+  * fix the bug that the last value of logitude was truncated.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.28-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Wed, 02 Nov 2011 14:42:03 +0900
+
+libslp-location (0.3.27-1) unstable; urgency=low
+
+  * fix the bug that libslp-location returns 0,0 instead of error when a last postion(VCONF) is null
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.27-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 31 Oct 2011 11:17:21 +0900
+
+libslp-location (0.3.26-1) unstable; urgency=low
+
+  * vconf key is changed and use time_t for timestamp
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.26-1
+
+ -- Genie Kim <daejins.kim@samsung.com>  Mon, 17 Oct 2011 13:29:19 +0900
+
+libslp-location (0.3.25-1) unstable; urgency=low
+
+  * add location_is_supported_method, location_send_command & update_interval
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.25-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Wed, 12 Oct 2011 12:36:45 +0900
+
+libslp-location (0.3.24-1) unstable; urgency=low
+
+  * add location_get_last_known_position & fix prevent defect
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.24-1
+
+ -- Genie Kim <daejins.kim@samsung.com>  Thu, 29 Sep 2011 21:37:27 +0900
+
+libslp-location (0.3.23-2) unstable; urgency=low
+
+  * change maintainer in boilerplate
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.23-2
+
+ -- Genie Kim <daejins.kim@samsung.com>  Wed, 20 Jul 2011 17:56:38 +0900
+
+libslp-location (0.3.23-1) unstable; urgency=low
+
+  * Vconfkey value is changed by new UI guide
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.23-1
+
+ -- Genie Kim <daejins.kim@samsung.com>  Fri, 01 Jul 2011 17:42:34 +0900
+
+libslp-location (0.3.22-1) unstable; urgency=low
+
+  * Release New Location APIs
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.22-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Wed, 20 Apr 2011 11:07:38 +0900
+
+libslp-location (0.2.22-1) unstable; urgency=low
+
+  * Bug fix when hybrid exit
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.22-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Thu, 10 Mar 2011 19:44:07 +0900
+
+libslp-location (0.2.21-1) unstable; urgency=low
+
+  * Always update GPS data to PDR in hybrid mode & change some names
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.21-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Thu, 10 Mar 2011 14:52:09 +0900
+
+libslp-location (0.2.20-1) unstable; urgency=low
+
+  * Location eanbled by UX guide
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.20-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Mon, 07 Mar 2011 21:01:50 +0900
+
+libslp-location (0.2.19-2) unstable; urgency=low
+
+  * Release again for sbox i386 build
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.19-2
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Mon, 07 Mar 2011 09:19:06 +0900
+
+libslp-location (0.2.19-1) unstable; urgency=low
+
+  * Apply prevent
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.19-1
+
+ -- sangho park <sangho.g.park@samsung.com>  Tue, 22 Feb 2011 13:57:22 +0900
+
+libslp-location (0.2.18-2) unstable; urgency=low
+
+  * Fix depends for Sbox1
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.18-2
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Thu, 17 Feb 2011 20:07:52 +0900
+
+libslp-location (0.2.18-1) unstable; urgency=low
+
+  * Add SPS object/module
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.18-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Wed, 16 Feb 2011 16:52:43 +0900
+
+libslp-location (0.2.17-1) unstable; urgency=low
+
+  * Apply prevent & Fix PG
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.17-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Tue, 08 Feb 2011 13:04:34 +0900
+
+libslp-location (0.2.16-2) unstable; urgency=low
+
+  * Add prevent & Fix accuracy
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.16-2
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Tue, 25 Jan 2011 17:12:01 +0900
+
+libslp-location (0.2.16-1) unstable; urgency=low
+
+  * Add CPS/IPS & Async address API & Appy vconf security
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.16-1
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Wed, 19 Jan 2011 11:39:22 +0900
+
+libslp-location (0.2.15-1) unstable; urgency=low
+
+  * Apply TC recomm. & change default setting value to 0
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.15-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Thu, 06 Jan 2011 10:21:04 +0900
+
+libslp-location (0.2.14-1) unstable; urgency=low
+
+  * Change plugin & guide & Fix TC
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.14-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 20 Dec 2010 17:27:55 +0900
+
+libslp-location (0.2.13-0) unstable; urgency=low
+
+  * Fix build dependency
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.13-0
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 13 Dec 2010 13:03:30 +0900
+
+libslp-location (0.2.12-0) unstable; urgency=low
+
+  * Fix plugin & guide & add setting feature
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.12-0
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 13 Dec 2010 09:40:53 +0900
+
+libslp-location (0.2.11-0) unstable; urgency=low
+
+  * Add hybri mode & Fix some bugs
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.11-0
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 29 Nov 2010 10:57:57 +0900
+
+libslp-location (0.2.10-0) unstable; urgency=low
+
+  * Fix minor bugs
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.10-0
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Wed, 24 Nov 2010 23:26:37 +0900
+
+libslp-location (0.2.9-1) unstable; urgency=low
+
+  * Remove caching
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.9-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 23 Nov 2010 14:29:20 +0900
+
+libslp-location (0.2.8-1) unstable; urgency=low
+
+  * Fix plugin priority & Fix sample code bug
+  * git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.8-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Wed, 10 Nov 2010 21:46:03 +0900
+
+libslp-location (0.2.7-1) unstable; urgency=low
+
+  * Add geocode object & Enable wps object
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.2.7-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 08 Nov 2010 23:03:50 +0900
+
+libslp-location (0.1.7-1) unstable; urgency=low
+
+  * Remove unnecessary dependencies(geoclue-skyhook,gpsd ..)
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.7-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 01 Nov 2010 13:53:11 +0900
+
+libslp-location (0.1.6-1) unstable; urgency=low
+
+  * Fix dependency
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.6-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Sun, 31 Oct 2010 16:59:48 +0900
+
+libslp-location (0.1.5-1) unstable; urgency=low
+
+  * Fix for limo
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.5-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 29 Oct 2010 16:26:43 +0900
+
+libslp-location (0.1.4-2) unstable; urgency=low
+
+  * Remove version field for limo
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.4-2
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 29 Oct 2010 14:50:42 +0900
+
+libslp-location (0.1.4-1) unstable; urgency=low
+
+  * Add version field in control
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.4-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 29 Oct 2010 14:18:01 +0900
+
+libslp-location (0.1.3-1) unstable; urgency=low
+
+  * Fix PG & sample, Change signal emission
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.3-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 29 Oct 2010 13:49:11 +0900
+
+libslp-location (0.1.2-1) unstable; urgency=low
+
+  * Add more bolier plate
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.2-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 26 Oct 2010 16:40:31 +0900
+
+libslp-location (0.1.1-1) unstable; urgency=low
+
+  * Fix for PG & Doxygen & Limo Contrib.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.1-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 26 Oct 2010 12:22:16 +0900
+
+libslp-location (0.1.0-15) unstable; urgency=low
+
+  * Update programming guide & test case for address APIs
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-15
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Sat, 16 Oct 2010 20:53:38 +0900
+
+libslp-location (0.1.0-14) unstable; urgency=low
+
+  * Adapt to libdecarta
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-14
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 11 Oct 2010 22:33:14 +0900
+
+libslp-location (0.1.0-13) unstable; urgency=low
+
+  * Add input parameter error handling & Change TC
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-13
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 27 Sep 2010 20:03:09 +0900
+
+libslp-location (0.1.0-12) unstable; urgency=low
+
+  * Fix in zone in/out & Add more test case
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-12
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 17 Sep 2010 16:56:35 +0900
+
+libslp-location (0.1.0-11) unstable; urgency=low
+
+  * Add glib-genmarshal & Remove marshal source/header
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-11
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 14 Sep 2010 10:18:37 +0900
+
+libslp-location (0.1.0-10) unstable; urgency=low
+
+  * Change programming guide & doxygen comments
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-10
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Fri, 10 Sep 2010 14:52:24 +0900
+
+libslp-location (0.1.0-9) unstable; urgency=low
+
+  * Change programming guilde & Add sample codes
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-9
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Thu, 09 Sep 2010 17:50:27 +0900
+
+libslp-location (0.1.0-8) unstable; urgency=low
+
+  * Add zone in/out & boundary feature
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-8
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 06 Sep 2010 10:57:08 +0900
+
+libslp-location (0.1.0-7) unstable; urgency=low
+
+  * Adapt to geoclue change
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-7
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Sat, 04 Sep 2010 19:40:16 +0900
+
+libslp-location (0.1.0-6) unstable; urgency=low
+
+  * Change programming guide & test application
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-6
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Wed, 01 Sep 2010 20:07:34 +0900
+
+libslp-location (0.1.0-5) unstable; urgency=low
+
+  * Change fw name in doxygen & release again
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-5
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 31 Aug 2010 23:28:12 +0900
+
+libslp-location (0.1.0-4) unstable; urgency=low
+
+  * Add doxygen & change API return value to integer
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-4
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Tue, 31 Aug 2010 22:09:35 +0900
+
+libslp-location (0.1.0-3) unstable; urgency=low
+
+  * Change header dependency for relase
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-3
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 30 Aug 2010 20:58:04 +0900
+
+libslp-location (0.1.0-2) unstable; urgency=low
+
+  * Fix header include & Release again
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-2
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 30 Aug 2010 17:51:44 +0900
+
+libslp-location (0.1.0-1) unstable; urgency=low
+
+  * Initial version
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.1.0-1
+
+ -- Tae-hwan Kim <the81.kim@samsung.com>  Mon, 30 Aug 2010 12:01:05 +0900

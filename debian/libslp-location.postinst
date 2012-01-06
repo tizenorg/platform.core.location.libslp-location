@@ -1,0 +1,23 @@
+#!/bin/sh
+
+#setting 
+if [ "${USER}" = "root" ]
+then
+vconftool set -t int db/location/position/Timestamp "0" -f
+vconftool set -t string db/location/position/LastPosition "" -f
+vconftool set -t int db/location/position/LastAccuracy "0" -f
+vconftool set -t int db/location/setting/GpsEnabled "0" -g 6514 -f
+vconftool set -t int db/location/setting/AgpsEnabled "0" -g 6514 -f
+vconftool set -t int db/location/setting/NetworkEnabled "0" -g 6514 -f
+vconftool set -t int db/location/setting/SensorEnabled "0" -g 6514 -f
+else
+vconftool set -t int db/location/position/Timestamp "0" -f
+vconftool set -t string db/location/position/LastPosition "" -f
+vconftool set -t int db/location/position/LastAccuracy "0" -f
+vconftool set -t int db/location/setting/GpsEnabled "0" -g -f
+vconftool set -t int db/location/setting/AgpsEnabled "0" -f
+vconftool set -t int db/location/setting/NetworkEnabled "0" -f
+vconftool set -t int db/location/setting/SensorEnabled "0" -f
+fi
+
+sync
