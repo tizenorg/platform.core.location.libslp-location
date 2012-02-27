@@ -27,69 +27,50 @@ static void startup(), cleanup();
 void (*tet_startup) () = startup;
 void (*tet_cleanup) () = cleanup;
 
-static void utc_zone_out();
+static void utc_location_get_last_known_position_01();
+static void utc_location_get_last_known_position_02();
 
 struct tet_testlist tet_testlist[] = {
-	{utc_zone_out,1},
+	{utc_location_get_last_known_position_01,1},
+	{utc_location_get_last_known_position_02,2},
 	{NULL,0},
 };
 
-static GMainLoop *loop = NULL;
 int ret;
 LocationObject* loc;
 
-gboolean
-exit_loop (gpointer data)
-{
-	g_main_loop_quit (loop);
-	tet_result(TET_FAIL);
-	return FALSE;
-}
-
 static void startup()
 {
-	location_init();
+	ret = location_init();
 	loc = location_new(LOCATION_METHOD_GPS);
-	location_start(loc);
-	loop = g_main_loop_new(NULL,FALSE);
-
-	LocationPosition *rb = location_position_new(0, 36.395, 25.41, 0, LOCATION_STATUS_2D_FIX);
-	LocationPosition *lt = location_position_new(0, 36.413, 25.388, 0, LOCATION_STATUS_2D_FIX);
-	LocationBoundary* bound = location_boundary_new_for_rect(lt, rb);
-	location_boundary_add(loc, bound);
-
-	location_position_free (rb);
-	location_position_free (lt);
-	location_boundary_free (bound);
 	tet_printf("\n TC startup");
 }
 
 static void cleanup()
 {
-	location_stop(loc);
-	location_free(loc);
+	if( loc )
+		location_free(loc);
 	tet_printf("\n TC End");
 }
 
 static void
-_cb_zone_out(LocationObject *self,
-            guint type,
-            gpointer position,
-            gpointer accuracy)
+utc_location_get_last_known_position_01()
 {
-	LocationPosition *pos = (LocationPosition*) position;
+	int ret = 0;
+	LocationLastPosition last_known_position = {0, };
 
-	if( (37.255 <= pos->latitude && pos->latitude <= 37.265) &&
-		(27.052 <= pos->longitude && pos->longitude <= 127.060) ) tet_result(TET_PASS);	// I am in Suwon HQ
+	ret = location_get_last_known_position(loc, LOCATION_METHOD_HYBRID, &last_known_position);
+	if (ret == LOCATION_ERROR_NONE) tet_result(TET_PASS);
 	else tet_result(TET_FAIL);
-	g_main_loop_quit(loop);
 }
-
 
 static void
-utc_zone_out()
+utc_location_get_last_known_position_02()
 {
-	g_signal_connect (loc, "zone-out", G_CALLBACK(_cb_zone_out), loc);
-	g_timeout_add_seconds(60, exit_loop, NULL);
-	g_main_loop_run (loop);
+	int ret = 0;
+	LocationLastPosition last_known_position = {0, };
+	ret = location_get_last_known_position(NULL, LOCATION_METHOD_HYBRID, &last_known_position);
+	if (ret == LOCATION_ERROR_NONE) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
 }
+

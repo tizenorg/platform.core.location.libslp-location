@@ -180,60 +180,101 @@ location_get_position (LocationObject *obj,
 	LocationAccuracy **accuracy)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
 	return location_ielement_get_position (LOCATION_IELEMENT(obj), position, accuracy);
 }
 
 EXPORT_API int
-location_get_last_known_position (LocationObject *obj,
+location_get_last_position (LocationObject *obj, LocationMethod method,
+	LocationPosition **position,
+	LocationAccuracy **accuracy)
+{
+	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
+
+	return LOCATION_ERROR_NONE;
+}
+
+EXPORT_API int
+location_get_last_known_position (LocationObject *obj, LocationMethod method,
 	LocationLastPosition *last_position)
 {
 	g_return_val_if_fail (last_position, LOCATION_ERROR_PARAMETER);
 
-	int ret = -1;
-	int lat, lon, acc;
-	char position[MAX_KEY_LENGTH + 1] = {0,};
+	LocationMethod redefined_method = method;
 
-	snprintf(position, MAX_KEY_LENGTH + 1, "%s", location_setting_get_string(LAST_POSITION));
-	if (position[0] != '\0') {
-		location_last_position_a2i(position, &lat, &lon);
-		LOCATION_LOGD("location_last_position_a2i [%s][%d/%d]", position, lat, lon);
-		acc = location_setting_get_int(LAST_ACCURACY);
+	if (!obj) redefined_method = LOCATION_METHOD_HYBRID;
 
-		last_position->latitude = lat * 0.0001;
-		last_position->longitude = lon * 0.0001;
-		last_position->accuracy = acc * 0.0001;
-		LOCATION_LOGD("last_position [%f/%f]", last_position->latitude, last_position->longitude);
-		ret = LOCATION_ERROR_NONE;
-	} else {
-		LOCATION_LOGD("location_last_position is empty");
-		ret = LOCATION_ERROR_UNKNOWN;
+	if (redefined_method == LOCATION_METHOD_HYBRID) {
+		int gps_timestamp = 0, wps_timestamp = 0, sps_timestamp = 0;
+		int latest_timestamp = 0;
+
+		redefined_method = LOCATION_METHOD_SPS;
+		vconf_get_int(GPS_LAST_TIMESTAMP, &gps_timestamp);
+		vconf_get_int(WPS_LAST_TIMESTAMP, &wps_timestamp);
+		vconf_get_int(SPS_LAST_TIMESTAMP, &sps_timestamp);
+
+		redefined_method = LOCATION_METHOD_SPS;
+		latest_timestamp = sps_timestamp;
+		if (gps_timestamp > sps_timestamp) {
+			redefined_method = LOCATION_METHOD_GPS;
+			latest_timestamp = gps_timestamp;
+		}
+
+		if (wps_timestamp > latest_timestamp) {
+			redefined_method = LOCATION_METHOD_WPS;
+		}
+		
 	}
 
-	return ret;
+	if (get_last_known_position (redefined_method, last_position)) {
+		return LOCATION_ERROR_UNKNOWN;
+	}
+
+	return LOCATION_ERROR_NONE;
+}
+
+EXPORT_API int
+location_get_satellite (LocationObject *obj, LocationSatellite **satellite)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (satellite, LOCATION_ERROR_PARAMETER);
+
+	return LOCATION_ERROR_NONE;;
+}
+
+EXPORT_API int
+location_get_last_satellite (LocationObject *obj, LocationSatellite **satellite)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (satellite, LOCATION_ERROR_PARAMETER);
+
+	return LOCATION_ERROR_NONE;;
 }
 
 EXPORT_API int
 location_get_position_from_address (LocationObject *obj,
 	const LocationAddress *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (geocode, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_geocode (LOCATION_IELEMENT(geocode), address, position, accuracy);
+	return location_ielement_get_geocode (LOCATION_IELEMENT(geocode), address, position_list, accuracy_list);
 }
 
 EXPORT_API int
 location_get_position_from_freeformed_address (LocationObject *obj,
 	const gchar *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (geocode, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_geocode_freeform (LOCATION_IELEMENT(geocode), address, position, accuracy);
+	return location_ielement_get_geocode_freeform (LOCATION_IELEMENT(geocode), address, position_list, accuracy_list);
 }
 
 EXPORT_API int
@@ -242,7 +283,21 @@ location_get_velocity (LocationObject *obj,
 	LocationAccuracy **accuracy)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (velocity, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
+
 	return location_ielement_get_velocity (LOCATION_IELEMENT(obj), velocity, accuracy);
+}
+
+EXPORT_API int
+location_get_last_velocity (LocationObject *obj,
+	LocationVelocity **velocity,
+	LocationAccuracy **accuracy)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (velocity, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
+	return LOCATION_ERROR_NONE;
 }
 
 EXPORT_API int

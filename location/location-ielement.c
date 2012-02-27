@@ -100,29 +100,27 @@ location_ielement_get_velocity (LocationIElement *self,
 int
 location_ielement_get_geocode (LocationIElement *self,
 	const LocationAddress *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	g_return_val_if_fail (LOCATION_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode, LOCATION_ERROR_NOT_AVAILABLE);
-	return LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode (self, address, position, accuracy);
+
+	return LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode (self, address, position_list, accuracy_list);
 }
 
 int
 location_ielement_get_geocode_freeform (LocationIElement *self,
 	const gchar *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	g_return_val_if_fail (LOCATION_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (accuracy, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform, LOCATION_ERROR_NOT_AVAILABLE);
-	return LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform (self, address, position, accuracy);
+
+	return LOCATION_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform (self, address, position_list, accuracy_list);
 }
 
 int

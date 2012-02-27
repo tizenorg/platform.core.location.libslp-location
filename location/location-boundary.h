@@ -74,12 +74,12 @@ typedef struct {
 } LocationPolygon;
 
 /**
- * @brief This represents boundary information such as rectagular or circle area.
+ * @brief This represents boundary information such as rectangular or circle area.
  */
 struct _LocationBoundary{
 	LocationBoundaryType type;   ///< The boundary type of this information.
 	union {
-		LocationRect rect;           ///< The geographical information of a rectagle.
+		LocationRect rect;           ///< The geographical information of a rectangle.
 		LocationCircle circle;       ///< The geographical information of a circle.
 		LocationPolygon polygon;		///< The geographical information of a polygon.
 	};
@@ -89,7 +89,7 @@ GType location_boundary_get_type (void);
 #define LOCATION_TYPE_BOUNDARY (location_boundary_get_type ())
 
 /**
- * @brief   Create a rectagular type of new #LocationBoundary with given information.
+ * @brief   Create a rectangular type of new #LocationBoundary with given information.
  * @remarks None.
  * @pre     #location_init should be called before.\n
  * @post    None.
@@ -147,8 +147,8 @@ LocationBoundary *location_boundary_copy (const LocationBoundary* boundary);
 /**
  * @brief
  * Add Boundary on LocationFW.
- * You should call this fuction when you want to receive a corssing signal(zone-in/zone-out) from #LocationBoundary.
- * @remarks It suppoorts multi-boundaries. \n
+ * You should call this fuction when you want to receive a crossing signal(zone-in/zone-out) from #LocationBoundary.
+ * @remarks It supports multi-boundaries. \n
     However a duplicated boundary would not be allowed.
  * @pre
  * #location_new should be called before.\n
@@ -194,8 +194,8 @@ int location_boundary_add(const LocationObject *obj, const LocationBoundary *bou
 /**
  * @brief
  * Remove Boundary on LocationFW.
- * You should call this function when you don't want to receive a corssing signal(zone-in/zone-out) from #LocationBoundary any more.
- * @remarks It suppoorts multi-boundaries.
+ * You should call this function when you don't want to receive a crossing signal(zone-in/zone-out) from #LocationBoundary any more.
+ * @remarks It supports multi-boundaries.
  * @pre
  * #location_init should be called before.\n
  * @post None.

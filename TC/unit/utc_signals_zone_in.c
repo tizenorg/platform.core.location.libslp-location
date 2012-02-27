@@ -18,7 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <tet_api.h>
 #include <glib.h>
 #include <location.h>
@@ -32,7 +31,7 @@ static void utc_zone_in();
 struct tet_testlist tet_testlist[] = {
 	{utc_zone_in,1},
 	{NULL,0},
-};	
+};
 
 static GMainLoop *loop = NULL;
 int ret;
@@ -47,24 +46,25 @@ exit_loop (gpointer data)
 }
 
 static void startup()
-{	
+{
 	location_init();
 	loc = location_new(LOCATION_METHOD_GPS);
 	location_start(loc);
-	loop = g_main_loop_new(NULL,FALSE);	
+	loop = g_main_loop_new(NULL,FALSE);
 
 	LocationPosition *rb = location_position_new(0, 37.254, 127.057, 0, LOCATION_STATUS_2D_FIX);
 	LocationPosition *lt = location_position_new(0, 37.261, 127.050, 0, LOCATION_STATUS_2D_FIX);
 	LocationBoundary* bound = location_boundary_new_for_rect(lt, rb);
+	location_boundary_add(loc, bound);
+
 	location_position_free (rb);
 	location_position_free (lt);
-	g_object_set(loc, "boundary", bound, NULL);	
-	location_boundary_free (bound);	
+	location_boundary_free (bound);
 	tet_printf("\n TC startup");
 }
 
 static void cleanup()
-{	
+{
 	location_stop(loc);
 	location_free(loc);
 	tet_printf("\n TC End");
@@ -89,5 +89,5 @@ utc_zone_in()
 {
 	g_signal_connect (loc, "zone-in", G_CALLBACK(cb_zone_in), loc);
 	g_timeout_add_seconds(60, exit_loop, NULL);
-	g_main_loop_run (loop);	
+	g_main_loop_run (loop);
 }

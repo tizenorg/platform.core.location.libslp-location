@@ -1,10 +1,60 @@
-libslp-location (0.3.31-3) unstable; urgency=low
+libslp-location (0.3.34-4) unstable; urgency=low
 
-  * Change PKG name to "org.tizen" in test codes.
+  * Rollback
   * Git: pkgs/l/libslp-location
-  * Tag: libslp-location_0.3.31-3
+  * Tag: libslp-location_0.3.34-4
 
- -- Yunhan Kim <yhan.kim@samsung.com>  Fri, 23 Dec 2011 20:04:55 +0900
+ -- Minjune Kim <sena06.kim@samsung.com>  Thu, 23 Feb 2012 14:30:58 +0900
+
+libslp-location (0.3.34-3) unstable; urgency=low
+
+  * Add POI func & Route prototype
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-3
+
+ -- root <sena06.kim@samsung.com>  Thu, 23 Feb 2012 14:29:51 +0900
+
+libslp-location (0.3.34-2) unstable; urgency=low
+
+  * Add location_get_last_XXX and location_get_satellite proto. Add timestamp on satellite info
+  * Add TC
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-2
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 13 Feb 2012 21:03:22 +0900
+
+libslp-location (0.3.34-1) unstable; urgency=low
+
+  * Support to get multi positions using geocode service.
+  * Correct typo.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Fri, 03 Feb 2012 15:01:49 +0900
+
+libslp-location (0.3.33-2) unstable; urgency=low
+
+  * Remove a needless conditional code.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.33-2
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Sun, 29 Jan 2012 09:48:48 +0900
+
+libslp-location (0.3.33-1) unstable; urgency=low
+
+  * Enable to get last known position for each method.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.33-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Thu, 19 Jan 2012 19:44:12 +0900
+
+libslp-location (0.3.32-1) unstable; urgency=low
+
+  * Fix a bug that a module is not started when a service turns on.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.32-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Fri, 06 Jan 2012 17:10:12 +0900
 
 libslp-location (0.3.31-2) unstable; urgency=low
 

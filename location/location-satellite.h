@@ -40,15 +40,16 @@ typedef struct {
 	guint prn;       ///< The PRNs(Pseudo-Random Noise code) of a satellite.
 	gboolean used;   ///< TRUE if currently used satellite.
 	guint elevation; ///< The elevation of a satellite.
-	guint azimuth;   ///< The degress from true north 000 to 359 of a satellite.
+	guint azimuth;   ///< The degree from true north 000 to 359 of a satellite.
 	gint snr;        ///< The signal-to-noise ratio, dB of a satellite.
 } LocationSatelliteDetail;
 
 /**
- * @brief This represents position information such as number of satelltes in used or in view.
+ * @brief This represents position information such as number of satellites in used or in view.
  */
 struct _LocationSatellite
 {
+	guint timestamp;                           ///< Time stamp.
 	guint num_of_sat_inview;                   ///< The number of satellites in view.
 	guint num_of_sat_used;                     ///< The number of satellites in used.
 	LocationSatelliteDetail* sat_inview;       ///< The information of satellites in view .
@@ -99,7 +100,7 @@ LocationSatellite *location_satellite_copy (const LocationSatellite *satellite);
  * @param [out]  prn - The PRNs(Pseudo-Random Noise code) of a #LocationSatellite
  * @param [out]  used - TRUE if a #LocationSatellite in used.
  * @param [out]  elevation - The elevation of a #LocationSatellite
- * @param [out]  azimuth - The degress from true north 000 to 359 of a#LocationSatellite
+ * @param [out]  azimuth - The degree from true north 000 to 359 of a#LocationSatellite
  * @param [out]  snr - The signal-to-noise ratio, dB of #LocationSatellite
  * @return gboolean
  * @retval\n
@@ -118,7 +119,7 @@ gboolean location_satellite_get_satellite_details (const LocationSatellite *sate
  * @param [in]  prn - The PRNs(Pseudo-Random Noise code) of a #LocationSatellite
  * @param [in]  used - TRUE if a #LocationSatellite in used.
  * @param [in]  elevation - The elevation of a #LocationSatellite
- * @param [in]  azimuth - The degress from true north 000 to 359 of a#LocationSatellite
+ * @param [in]  azimuth - The degree from true north 000 to 359 of a#LocationSatellite
  * @param [in]  snr - The signal-to-noise ratio, dB of #LocationSatellite
  * @return gboolean
  * @retval\n

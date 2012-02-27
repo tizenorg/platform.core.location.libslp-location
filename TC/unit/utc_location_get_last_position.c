@@ -27,93 +27,74 @@ static void startup(), cleanup();
 void (*tet_startup) () = startup;
 void (*tet_cleanup) () = cleanup;
 
-static void utc_location_get_address_01();
-static void utc_location_get_address_02();
-static void utc_location_get_address_03();
+static void utc_location_get_last_position_01();
+static void utc_location_get_last_position_02();
+static void utc_location_get_last_position_03();
+static void utc_location_get_last_position_04();
 
 struct tet_testlist tet_testlist[] = {
-	{utc_location_get_address_01,1},
-	{utc_location_get_address_02,2},
-	{utc_location_get_address_03,3},
+	{utc_location_get_last_position_01,1},
+	{utc_location_get_last_position_02,2},
+	{utc_location_get_last_position_03,3},
+	{utc_location_get_last_position_04,4},
 	{NULL,0},
 };
 
-static GMainLoop *loop = NULL;
-LocationObject* loc = NULL;
-int ret = LOCATION_ERROR_NONE;
-int isNetStarted = 0;
-
-static gboolean
-exit_loop_fail (gpointer data)
-{
-	g_main_loop_quit (loop);
-	tet_result(TET_FAIL);
-	return FALSE;
-}
+int ret;
+LocationObject* loc;
 
 static void startup()
 {
 	location_init();
 	loc = location_new(LOCATION_METHOD_GPS);
-
-	loop = g_main_loop_new(NULL,FALSE);
-
 	tet_printf("\n TC startup");
 }
 
 static void cleanup()
 {
-	location_stop(loc);
 	location_free(loc);
 	tet_printf("\n TC End");
 }
 
 static void
-_get_address (GObject *self,
-	guint _status,
-	gpointer userdata)
+utc_location_get_last_position_01()
 {
-	LocationAccuracy *acc = NULL;
-	LocationAddress *addr = NULL;
+	LocationPosition *last_pos = NULL;
+	LocationAccuracy *last_acc = NULL;
 
-	ret = location_get_address(loc, &addr, &acc);
+	ret = location_get_last_position (loc, LOCATION_METHOD_GPS, &last_pos, &last_acc);
+	if (ret == LOCATION_ERROR_NONE) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+}
+
+static void
+utc_location_get_last_position_02()
+{
+	LocationAccuracy *last_acc = NULL;
+	LocationPosition *last_pos = NULL;
+
+	ret = location_get_last_position (NULL, LOCATION_METHOD_HYBRID, &last_pos, &last_acc);
 	tet_printf("Returned value: %d", ret);
-	if (ret == LOCATION_ERROR_NONE ||
-		ret == LOCATION_ERROR_CONFIGURATION) {
-		location_address_free(addr);
-		location_accuracy_free(acc);
-		tet_result(TET_PASS);
-	} else tet_result(TET_FAIL);
-	g_main_loop_quit (loop);
+	if (ret == LOCATION_ERROR_NONE) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
 }
 
 static void
-utc_location_get_address_01()
+utc_location_get_last_position_03()
 {
-	g_signal_connect (loc, "service-enabled", G_CALLBACK(_get_address), loc);
-	location_start(loc);
-	g_timeout_add_seconds(60, exit_loop_fail, loop);
-	g_main_loop_run (loop);	
-}
-
-static void
-utc_location_get_address_02()
-{
-	LocationAccuracy *acc = NULL;
-	LocationAddress *addr = NULL;
-
-	ret = location_get_address(NULL, &addr, &acc);
+	LocationAccuracy *last_acc = NULL;
+	ret = location_get_last_position (loc, LOCATION_METHOD_GPS, NULL, &last_acc);
 	tet_printf("Returned value: %d", ret);
 	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
 	else tet_result(TET_FAIL);
 }
 
 static void
-utc_location_get_address_03()
+utc_location_get_last_position_04()
 {
-	LocationAccuracy *acc = NULL;
-	ret = location_get_address(loc, NULL, &acc);
+	LocationPosition *last_pos = NULL;
+	ret = location_get_last_position (loc, LOCATION_METHOD_GPS, &last_pos, NULL);
 	tet_printf("Returned value: %d", ret);
-	if(ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
+	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
 	else tet_result(TET_FAIL);
 }

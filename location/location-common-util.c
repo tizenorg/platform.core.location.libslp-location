@@ -21,6 +21,7 @@
 
 #include "location.h"
 #include "location-common-util.h"
+#include "location-setting.h"
 #include "location-log.h"
 
 static gint compare_position (gconstpointer a, gconstpointer b)
@@ -167,6 +168,59 @@ int set_prop_removal_boundary(GList **prev_boundary_list, LocationBoundary* boun
 	}
 
 	return LOCATION_ERROR_NONE;
+}
+
+int get_last_known_position (LocationMethod method, LocationLastPosition *last_pos)
+{
+	int timestamp = 0;
+	double longitude = 0.0, latitude = 0.0, altitude = 0.0;
+	double hor_accuracy = 0.0, ver_accuracy = 0.0;
+	LOCATION_LOGD("Method [%d]", method);
+	switch (method) {
+		case LOCATION_METHOD_SPS:
+			if (vconf_get_int(SPS_LAST_TIMESTAMP, &timestamp) ||
+				vconf_get_dbl(SPS_LAST_LATITUDE, &latitude) ||
+				vconf_get_dbl(SPS_LAST_LONGITUDE, &longitude) ||
+				vconf_get_dbl(SPS_LAST_ALTITUDE, &altitude) ||
+				vconf_get_dbl(SPS_LAST_HORACCURACY, &hor_accuracy) ||
+				vconf_get_dbl(SPS_LAST_VERACCURACY, &ver_accuracy)) {
+				return -1;
+			}
+			break;
+		case LOCATION_METHOD_WPS:
+			if (vconf_get_int(WPS_LAST_TIMESTAMP, &timestamp) ||
+				vconf_get_dbl(WPS_LAST_LATITUDE, &latitude) ||
+				vconf_get_dbl(WPS_LAST_LONGITUDE, &longitude) ||
+				vconf_get_dbl(WPS_LAST_ALTITUDE, &altitude) ||
+				vconf_get_dbl(WPS_LAST_HORACCURACY, &hor_accuracy)) {
+				return -1;
+			}
+			break;
+		case LOCATION_METHOD_GPS:
+			if (vconf_get_int(GPS_LAST_TIMESTAMP, &timestamp) ||
+				vconf_get_dbl(GPS_LAST_LATITUDE, &latitude) ||
+				vconf_get_dbl(GPS_LAST_LONGITUDE, &longitude) ||
+				vconf_get_dbl(GPS_LAST_ALTITUDE, &altitude) ||
+				vconf_get_dbl(GPS_LAST_HORACCURACY, &hor_accuracy) ||
+				vconf_get_dbl(GPS_LAST_VERACCURACY, &ver_accuracy)) {
+				return -1;
+			}
+			break;
+		case LOCATION_METHOD_HYBRID:
+		default:
+			return -1;
+
+	}
+
+	last_pos->method = method;
+	last_pos->timestamp = (guint) timestamp;
+	last_pos->longitude = (gdouble) longitude;
+	last_pos->latitude = (gdouble) latitude;
+	last_pos->altitude = (gdouble) altitude;
+	last_pos->horizontal_accuracy = (gdouble) hor_accuracy;
+	last_pos->vertical_accuracy = (gdouble) ver_accuracy;
+
+	return 0;
 }
 
 

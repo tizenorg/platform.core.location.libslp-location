@@ -38,6 +38,8 @@ G_BEGIN_DECLS
 int set_prop_boundary(GList **prev_boundary_list, GList *new_boundary_list);
 int set_prop_removal_boundary(GList **prev_boundary_list, LocationBoundary *boundary);
 
+int get_last_known_position (LocationMethod method, LocationLastPosition *last_pos);
+
 G_END_DECLS
 
 #endif

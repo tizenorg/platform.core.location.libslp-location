@@ -38,6 +38,7 @@
 typedef struct _LocationGpsPrivate {
 	LocationGpsMod* 	mod;
 	gboolean 		is_started;
+	gboolean		set_noti;
 	gboolean 		enabled;
 	guint 			interval;
 	LocationPosition* 	pos;
@@ -119,13 +120,18 @@ location_setting_gps_cb (keynode_t *key,
 	LocationGpsPrivate* priv = GET_PRIVATE(self);
 	g_return_if_fail (priv->mod);
 	g_return_if_fail (priv->mod->handler);
-	if (0 == location_setting_get_key_val(key) && priv->mod->ops.stop) {
+
+	int ret = LOCATION_ERROR_NONE;
+
+	if (0 == location_setting_get_key_val(key) && priv->mod->ops.stop && priv->is_started) {
 		LOCATION_LOGD("location stopped by setting");
-		priv->mod->ops.stop(priv->mod->handler);
+		ret = priv->mod->ops.stop(priv->mod->handler);
+		if (ret == LOCATION_ERROR_NONE) priv->is_started = FALSE;
 	}
-	else if (1 == location_setting_get_key_val(key) && priv->mod->ops.start) {
+	else if (1 == location_setting_get_key_val(key) && priv->mod->ops.start && !priv->is_started) {
 		LOCATION_LOGD("location resumed by setting");
-		priv->mod->ops.start (priv->mod->handler, gps_status_cb, gps_position_cb, gps_velocity_cb, self);
+		ret = priv->mod->ops.start (priv->mod->handler, gps_status_cb, gps_position_cb, gps_velocity_cb, self);
+		if (ret == LOCATION_ERROR_NONE) priv->is_started = TRUE;
 	}
 }
 
@@ -137,14 +143,33 @@ location_gps_start (LocationGps *self)
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.start, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail (GPS_ENABLED);
+
 	if (priv->is_started == TRUE) return LOCATION_ERROR_NONE;
 
-	int ret = priv->mod->ops.start (priv->mod->handler, gps_status_cb, gps_position_cb, gps_velocity_cb, self);
-	if (ret == LOCATION_ERROR_NONE) {
-		priv->is_started = TRUE;
-		location_setting_add_notify (GPS_ENABLED, location_setting_gps_cb, self);
+	int ret = LOCATION_ERROR_NONE;
+	int noti_err = 0;
+
+	if (!location_setting_get_int(GPS_ENABLED)) {
+		ret = LOCATION_ERROR_NOT_ALLOWED;
 	}
+	else {
+		ret = priv->mod->ops.start (priv->mod->handler, gps_status_cb, gps_position_cb, gps_velocity_cb, self);
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = TRUE;
+		}
+		else {
+			return ret;
+		}
+	}
+
+	if(priv->set_noti == FALSE) {
+		noti_err = location_setting_add_notify (GPS_ENABLED, location_setting_gps_cb, self);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		priv->set_noti = TRUE;
+	}
+
 	return ret;
 }
 
@@ -156,13 +181,28 @@ location_gps_stop (LocationGps *self)
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.stop, LOCATION_ERROR_NOT_AVAILABLE);
-	if (priv->is_started == FALSE) return LOCATION_ERROR_NONE;
 
-	int ret = priv->mod->ops.stop (priv->mod->handler);
-	if (ret == LOCATION_ERROR_NONE) {
-		priv->is_started = FALSE;
-		location_setting_ignore_notify (GPS_ENABLED, location_setting_gps_cb);
+	int ret = LOCATION_ERROR_NONE;
+	int noti_err = 0;
+
+	if ( priv->is_started == TRUE) {
+		ret = priv->mod->ops.stop (priv->mod->handler);
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = FALSE;
+		}
+		else {
+			return ret;
+		}
 	}
+
+	if(priv->set_noti == TRUE) {
+		noti_err = location_setting_ignore_notify (GPS_ENABLED, location_setting_gps_cb);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		priv->set_noti = FALSE;
+	}
+
 	return ret;
 }
 
@@ -352,6 +392,7 @@ location_gps_init (LocationGps *self)
 	if(!priv->mod) LOCATION_LOGW("module loading failed");
 
 	priv->is_started = FALSE;
+	priv->set_noti = FALSE;
 	priv->enabled= FALSE;
 	priv->interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
 

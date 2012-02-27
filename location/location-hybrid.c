@@ -213,7 +213,6 @@ static int
 location_hybrid_start (LocationHybrid *self)
 {
 	LOCATION_LOGD("location_hybrid_start");
-	setting_retval_if_fail(GPS_ENABLED);
 
 	int ret_gps = LOCATION_ERROR_NONE;
 	int ret_wps = LOCATION_ERROR_NONE;
@@ -229,8 +228,17 @@ location_hybrid_start (LocationHybrid *self)
 
 	if (ret_gps != LOCATION_ERROR_NONE &&
 		ret_wps != LOCATION_ERROR_NONE &&
-		ret_sps != LOCATION_ERROR_NONE)
-		return LOCATION_ERROR_NOT_AVAILABLE;
+		ret_sps != LOCATION_ERROR_NONE) {
+		if (ret_gps == LOCATION_ERROR_NOT_ALLOWED ||
+				ret_wps == LOCATION_ERROR_NOT_ALLOWED ||
+				ret_sps == LOCATION_ERROR_NOT_ALLOWED) {
+			priv->is_started = TRUE;
+			return LOCATION_ERROR_NOT_ALLOWED;
+		}
+		else {
+			return LOCATION_ERROR_NOT_AVAILABLE;
+		}
+	}
 
 	priv->is_started = TRUE;
 	return LOCATION_ERROR_NONE;
@@ -253,12 +261,13 @@ location_hybrid_stop (LocationHybrid *self)
 	if(priv->wps) ret_wps = location_stop(priv->wps);
 	if(priv->sps) ret_sps = location_stop(priv->sps);
 
+	priv->is_started = FALSE;
+
 	if (ret_gps != LOCATION_ERROR_NONE &&
 		ret_wps != LOCATION_ERROR_NONE &&
 		ret_sps != LOCATION_ERROR_NONE)
 		return LOCATION_ERROR_NOT_AVAILABLE;
 
-	priv->is_started = FALSE;
 	return LOCATION_ERROR_NONE;
 }
 

@@ -37,6 +37,7 @@
 typedef struct _LocationSpsPrivate {
 	LocationSpsMod* mod;
 	gboolean is_started;
+	gboolean set_noti;
 	gboolean enabled;
 	guint 	 interval;
 	LocationPosition *pos;
@@ -124,14 +125,24 @@ location_setting_sps_cb(keynode_t *key,
 	LocationSpsPrivate* priv = GET_PRIVATE(self);
 	g_return_if_fail (priv->mod);
 	g_return_if_fail (priv->mod->handler);
-	if (0 == location_setting_get_key_val(key) && priv->mod->ops.stop) {
-		LOCATION_LOGD("location stopped by setting");
-		priv->mod->ops.stop(priv->mod->handler);
+
+	int ret = LOCATION_ERROR_NONE;
+
+	if (location_setting_get_key_val(key) == 0) {
+		if (priv->mod->ops.stop && priv->is_started) {
+			ret = priv->mod->ops.stop(priv->mod->handler);
+			if (ret == LOCATION_ERROR_NONE) priv->is_started = FALSE;
+		}
 	}
-	else if (1 == location_setting_get_key_val(key) && priv->mod->ops.start) {
-		LOCATION_LOGD("location resumed by setting");
-		priv->mod->ops.start (priv->mod->handler, sps_status_cb, sps_position_cb, sps_velocity_cb, self);
+	else {
+		if (location_setting_get_int(SENSOR_ENABLED) &&
+				priv->mod->ops.start && !priv->is_started) {
+			LOCATION_LOGD("location resumed by setting");
+			ret = priv->mod->ops.start (priv->mod->handler, sps_status_cb, sps_position_cb, sps_velocity_cb, self);
+			if (ret == LOCATION_ERROR_NONE) priv->is_started = TRUE;
+		}
 	}
+
 }
 
 static int
@@ -143,17 +154,39 @@ location_sps_start (LocationSps *self)
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.start, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.update_data, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
-	setting_retval_if_fail(SENSOR_ENABLED);
+
 	if( priv->is_started == TRUE) return LOCATION_ERROR_NONE;
 
-	int ret = priv->mod->ops.start(priv->mod->handler, sps_status_cb, sps_position_cb, sps_velocity_cb, self);
-	if(ret == LOCATION_ERROR_NONE){
-		priv->is_started = TRUE;
-		location_setting_add_notify (GPS_ENABLED, location_setting_sps_cb, self);
-		location_setting_add_notify (SENSOR_ENABLED, location_setting_sps_cb, self);
+	int ret = LOCATION_ERROR_NONE;
+	int noti_err = 0;
+
+	if (!location_setting_get_int(GPS_ENABLED) || !location_setting_get_int(SENSOR_ENABLED)) {
+		ret = LOCATION_ERROR_NOT_ALLOWED;
+	}
+	else {
+		ret = priv->mod->ops.start(priv->mod->handler, sps_status_cb, sps_position_cb, sps_velocity_cb, self);
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = TRUE;
+		}
+		else {
+			return ret;
+		}
+
 		priv->mod->ops.update_data(priv->mod->handler, priv->pos_base, priv->vel_base, priv->acc_info, priv->sat_info);
 	}
+
+	if (priv->set_noti == FALSE) {
+		noti_err = location_setting_add_notify (GPS_ENABLED, location_setting_sps_cb, self);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		noti_err = location_setting_add_notify (SENSOR_ENABLED, location_setting_sps_cb, self);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		priv->set_noti = TRUE;
+	}
+
 	return ret;
 }
 
@@ -165,14 +198,32 @@ location_sps_stop (LocationSps *self)
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.stop, LOCATION_ERROR_NOT_AVAILABLE);
-	if (priv->is_started == FALSE) return LOCATION_ERROR_NONE;
 
-	int ret = priv->mod->ops.stop (priv->mod->handler);
-	if (ret == LOCATION_ERROR_NONE){
-		priv->is_started = FALSE;
-		location_setting_ignore_notify (GPS_ENABLED, location_setting_sps_cb);
-		location_setting_ignore_notify (SENSOR_ENABLED, location_setting_sps_cb);
+	int ret = LOCATION_ERROR_NONE;
+	int noti_err = 0;
+
+	if (priv->is_started == TRUE) {
+		ret = priv->mod->ops.stop (priv->mod->handler);
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = FALSE;
+		}
+		else {
+			return ret;
+		}
 	}
+
+	if (priv->set_noti == TRUE) {
+		noti_err = location_setting_ignore_notify (GPS_ENABLED, location_setting_sps_cb);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		noti_err = location_setting_ignore_notify (SENSOR_ENABLED, location_setting_sps_cb);
+		if (noti_err != 0) {
+			return LOCATION_ERROR_UNKNOWN;
+		}
+		priv->set_noti = FALSE;
+	}
+
 	return ret;
 }
 

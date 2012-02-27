@@ -38,6 +38,28 @@ exit_program (gpointer data)
 }
 
 static void
+print_pos (gpointer data, gpointer user_data)
+{
+	LocationPosition *pos = (LocationPosition *)data;
+
+	if (pos) {
+		g_debug ("time: %d, lat: %f, long: %f, alt: %f, status: %d",
+			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
+		location_position_free (pos);
+	}
+}
+
+static void
+print_acc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+
+	if (acc) {
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_accuracy_free (acc);
+	}
+}
+static void
 cb_address (LocationError error,
 	LocationAddress *addr,
 	LocationAccuracy *acc,
@@ -61,27 +83,27 @@ cb_service_disabled (GObject *self,
 }
 
 static void
-cb_position_from_address (LocationError error, LocationPosition *pos, LocationAccuracy *acc, gpointer userdata)
+cb_position_from_address (LocationError error, GList *pos_list, GList *acc_list, gpointer userdata)
 {
 	if (error != LOCATION_ERROR_NONE) {
 		g_debug("cb_position_from_address failed: error=%d\n", error);
 		return;
 	}
-	g_debug ("ASYNC>> location_get_position_from_address_async> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+
+	g_list_foreach (pos_list, print_pos, NULL);
+	g_list_foreach (acc_list, print_acc, NULL);
 }
 
 static void
-cb_position_from_freeformed_address (LocationError error, LocationPosition *pos, LocationAccuracy *acc, gpointer userdata)
+cb_position_from_freeformed_address (LocationError error, GList *pos_list, GList *acc_list, gpointer userdata)
 {
 	if (error != LOCATION_ERROR_NONE) {
 		g_debug("cb_position_from_freeformed_address failed: error=%d\n", error);
 		return;
 	}
-	g_debug ("ASYNC>> location_get_position_from_freeformed_address_async> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+
+	g_list_foreach (pos_list, print_pos, NULL);
+	g_list_foreach (acc_list, print_acc, NULL);
 }
 
 static void
@@ -153,7 +175,7 @@ main (int argc, char *argv[])
 	LocationObject *loc = NULL;
 
 	// If application is executed by AUL, this is not needed.
-	g_setenv("PKG_NAME", "org.tizen.address-sample", 1);
+	g_setenv("PKG_NAME", "com.samsung.address-sample", 1);
 
 	g_type_init();
 	location_init ();
@@ -164,29 +186,26 @@ main (int argc, char *argv[])
 		g_warning("location_new failed");
 		return -1;
 	}
+
 	LocationPosition *pos = NULL;
 	LocationAccuracy *acc = NULL;
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
 	LocationAddress *addr = NULL;
 
 	addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-	LocationError err = location_get_position_from_address(loc, addr, &pos, &acc);
+	LocationError err = location_get_position_from_address(loc, addr, &pos_list, &acc_list);
 	if (LOCATION_ERROR_NONE == err) {
-		g_debug ("SYNC>> location_get_position_from_address() success> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_position_free (pos);
-		location_accuracy_free (acc);
+		g_list_foreach (pos_list, print_pos, NULL);
+		g_list_foreach (acc_list, print_acc, NULL);
 	} else g_warning ("SYNC>>>location_get_position_from_address() failed> error code:%d", err);
 	location_address_free (addr);
 
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
-	err = location_get_position_from_freeformed_address(loc, addr_str, &pos, &acc);
+	err = location_get_position_from_freeformed_address(loc, addr_str, &pos_list, &acc_list);
 	if (LOCATION_ERROR_NONE == err) {
-		g_debug ("SYNC>> location_get_position_from_freeformed_address() success> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_position_free (pos);
-		location_accuracy_free (acc);
+		g_list_foreach (pos_list, print_pos, NULL);
+		g_list_foreach (acc_list, print_acc, NULL);
 	} else g_warning ("SYNC>> location_get_position_from_freeformed_address() failed> error code:%d", err);
 	g_free(addr_str);
 
@@ -205,8 +224,9 @@ main (int argc, char *argv[])
 	g_signal_connect (loc, "service-disabled", G_CALLBACK(cb_service_disabled), loc);
 
 	g_timeout_add_seconds (3, async_request, loc);
-	if( LOCATION_ERROR_NONE != location_start (loc) ){
-		g_debug("location_start failed");
+	int ret = location_start (loc);
+	if( LOCATION_ERROR_NONE != ret ){
+		g_debug("location_start failed[%d]",ret);
 		return -1;
 	}
 

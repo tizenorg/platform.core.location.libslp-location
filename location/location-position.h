@@ -52,7 +52,7 @@ typedef enum
 struct _LocationPosition
 {
 	guint timestamp; 	///< Time stamp.
-	guint updated_timestamp; 	///< lastest updated time stamp.
+	guint updated_timestamp; 	///< latest updated time stamp.
 	gdouble latitude; 	///< Latitude data.
 	gdouble longitude;	///< Longitude data.
 	gdouble altitude; 	///< Altitude data.
@@ -64,10 +64,13 @@ struct _LocationPosition
  */
 struct _LocationLastPosition
 {
+	LocationMethod method;	///< Location Method.
 	guint timestamp; 	///< Time stamp.
 	gdouble latitude; 	///< Latitude data.
 	gdouble longitude;	///< Longitude data.
-	gdouble accuracy;	///< Accuracy data.
+	gdouble altitude;	///< Altitude data.
+	gdouble horizontal_accuracy;	///< Horizontal accuracy data.
+	gdouble vertical_accuracy;	///< Vertical accuracy data.
 };
 
 GType location_position_get_type (void);
@@ -99,7 +102,7 @@ LocationPosition *location_position_new (guint timestamp, gdouble latitude, gdou
 void location_position_free (LocationPosition *position);
 
 /**
- * @brief   Compares two positoins for equality, returning TRUE if they are equal.
+ * @brief   Compares two positions for equality, returning TRUE if they are equal.
  * @remarks None.
  * @pre     #location_init should be called before.\n
  * @post    None.

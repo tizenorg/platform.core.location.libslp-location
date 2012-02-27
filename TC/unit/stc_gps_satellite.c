@@ -123,8 +123,10 @@ _get_satellite (GObject *self,
                     gpointer userdata)
 {
 	LocationSatellite *sat = NULL;
- 	g_object_get (loc, "satellite", &sat, NULL);
-	if (sat) {
+	int ret = 0;
+
+	ret = location_get_satellite (loc, &sat);
+	if (ret == LOCATION_ERROR_NONE) {
 		tet_result(TET_PASS);
 		location_satellite_free (sat);
 	} else tet_result(TET_FAIL);

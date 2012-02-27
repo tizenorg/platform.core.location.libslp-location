@@ -21,7 +21,6 @@
 
 #include <tet_api.h>
 #include <glib.h>
-#include <gconf/gconf-client.h>
 #include <location.h>
 
 static void startup(), cleanup();
@@ -45,11 +44,7 @@ static GMainLoop *loop = NULL;
 LocationObject* loc;
 int ret;
 int isNetStarted = 0;
-
-#define GCONF_PROXY_MODE            "/system/proxy/mode"
-#define GCONF_HTTP_PROXY_HOST       "/system/http_proxy/host"
-#define GCONF_HTTP_PROXY_PORT       "/system/http_proxy/port"
-#define ENV_HTTP_PROXY              "http_proxy"
+int g_state = 0;
 
 static gboolean
 exit_loop (gpointer data)
@@ -59,36 +54,34 @@ exit_loop (gpointer data)
 }
 
 static void startup()
-{	
+{
 	location_init();
 	loc = location_new(LOCATION_METHOD_GPS);
 
-	loop = g_main_loop_new(NULL,FALSE);		
-	g_main_loop_run (loop);
-
-	tet_printf("\n TC startup");	
+	loop = g_main_loop_new(NULL,FALSE);
+	tet_printf("\n TC startup");
 }
 
 static void cleanup()
-{	
+{
 	location_free(loc);
 	tet_printf("\n TC End");
 }
 
 static void
 utc_location_get_address_from_position_01()
-{	
+{
 	LocationPosition *pos = location_position_new(0, 37.257809, 127.056383, 0, LOCATION_STATUS_2D_FIX);
 	LocationAccuracy *acc = NULL;
 	LocationAddress *addr = NULL;
 	ret = location_get_address_from_position(loc, pos, &addr, &acc);
 	location_position_free(pos);
-	tet_printf("Returned value: %d", ret);	
+	tet_printf("Returned value: %d", ret);
 	if (ret == LOCATION_ERROR_NONE ||
 		ret == LOCATION_ERROR_CONFIGURATION) {
 		location_address_free(addr);
 		location_accuracy_free(acc);
-		tet_result(TET_PASS);		
+		tet_result(TET_PASS);
 	} else tet_result(TET_FAIL);
 }
 
@@ -98,7 +91,7 @@ utc_location_get_address_from_position_02()
 	LocationPosition *pos = location_position_new(0, 37.257809, 127.056383, 0, LOCATION_STATUS_2D_FIX);
 	LocationAccuracy *acc = NULL;
 	LocationAddress *addr = NULL;
-	
+
 	ret = location_get_address_from_position(NULL, pos, &addr, &acc);
 	location_position_free(pos);
 	location_address_free(addr);

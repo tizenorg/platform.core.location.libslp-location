@@ -100,7 +100,9 @@ G_BEGIN_DECLS
 gboolean module_init(void);
 gpointer module_new(const char* module_name);
 void module_free(gpointer mod, const char* module_name);
-	
+
+gboolean module_is_supported(const char *module_name);
+
 G_END_DECLS
 
 #endif

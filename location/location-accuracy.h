@@ -53,7 +53,7 @@ struct _LocationAccuracy
 {
 	LocationAccuracyLevel level;        ///< The accuracy level of the location information.
 	gdouble horizontal_accuracy;        ///< The horizontal position uncertainty  of the location in meters.
-	gdouble vertical_accuracy;          ///< The vertical position unvertainty of the location in meters.
+	gdouble vertical_accuracy;          ///< The vertical position uncertainty of the location in meters.
 };
 
 GType location_accuracy_get_type(void);
@@ -66,7 +66,7 @@ GType location_accuracy_get_type(void);
  * @post    None.
  * @param [in]  level - The accuracy level of the location information.
  * @param [in]  horizontal_accuracy - The horizontal position uncertainty  of the location in meters.
- * @param [in]  vertical_accuracy - The vertical position unvertainty of the location in meters.
+ * @param [in]  vertical_accuracy - The vertical position uncertainty of the location in meters.
  * @return a new #LocationAccuracy
  * @retval NULL if error occured
  */

@@ -27,10 +27,14 @@ static void startup(), cleanup();
 void (*tet_startup) () = startup;
 void (*tet_cleanup) () = cleanup;
 
-static void utc_zone_out();
+static void utc_location_get_satellite_01();
+static void utc_location_get_satellite_02();
+static void utc_location_get_satellite_03();
 
 struct tet_testlist tet_testlist[] = {
-	{utc_zone_out,1},
+	{utc_location_get_satellite_01,1},
+	{utc_location_get_satellite_02,2},
+	{utc_location_get_satellite_03,3},
 	{NULL,0},
 };
 
@@ -38,7 +42,7 @@ static GMainLoop *loop = NULL;
 int ret;
 LocationObject* loc;
 
-gboolean
+static gboolean
 exit_loop (gpointer data)
 {
 	g_main_loop_quit (loop);
@@ -52,15 +56,6 @@ static void startup()
 	loc = location_new(LOCATION_METHOD_GPS);
 	location_start(loc);
 	loop = g_main_loop_new(NULL,FALSE);
-
-	LocationPosition *rb = location_position_new(0, 36.395, 25.41, 0, LOCATION_STATUS_2D_FIX);
-	LocationPosition *lt = location_position_new(0, 36.413, 25.388, 0, LOCATION_STATUS_2D_FIX);
-	LocationBoundary* bound = location_boundary_new_for_rect(lt, rb);
-	location_boundary_add(loc, bound);
-
-	location_position_free (rb);
-	location_position_free (lt);
-	location_boundary_free (bound);
 	tet_printf("\n TC startup");
 }
 
@@ -72,24 +67,46 @@ static void cleanup()
 }
 
 static void
-_cb_zone_out(LocationObject *self,
-            guint type,
-            gpointer position,
-            gpointer accuracy)
+_get_satellite (GObject *self,
+              			guint _status,
+                    gpointer userdata)
 {
-	LocationPosition *pos = (LocationPosition*) position;
+	LocationSatellite *sat = NULL;
+	LocationObject *loc = (LocationObject*)userdata;
 
-	if( (37.255 <= pos->latitude && pos->latitude <= 37.265) &&
-		(27.052 <= pos->longitude && pos->longitude <= 127.060) ) tet_result(TET_PASS);	// I am in Suwon HQ
-	else tet_result(TET_FAIL);
-	g_main_loop_quit(loop);
+	ret = location_get_satellite (loc, &sat);
+	tet_printf("Returned value: %d", ret);
+	if (ret == LOCATION_ERROR_NONE) {
+		location_satellite_free(sat);
+		tet_result(TET_PASS);
+	} else tet_result(TET_FAIL);
+	g_main_loop_quit (loop);
 }
 
+static void
+utc_location_get_satellite_01()
+{
+	g_signal_connect (loc, "service-enabled", G_CALLBACK(_get_satellite), loc);
+	g_timeout_add_seconds(60, exit_loop, loop);
+	g_main_loop_run (loop);
+}
 
 static void
-utc_zone_out()
+utc_location_get_satellite_02()
 {
-	g_signal_connect (loc, "zone-out", G_CALLBACK(_cb_zone_out), loc);
-	g_timeout_add_seconds(60, exit_loop, NULL);
-	g_main_loop_run (loop);
+	LocationSatellite *sat = NULL;
+	ret = location_get_satellite (NULL, &sat);
+	tet_printf("Returned value: %d", ret);
+	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+}
+
+static void
+utc_location_get_satellite_03()
+{
+	LocationSatellite *sat = NULL;
+	ret = location_get_satellite (loc, NULL);
+	tet_printf("Returned value: %d", ret);
+	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
 }

@@ -23,6 +23,8 @@
 #include <glib.h>
 #include <location.h>
 
+static gboolean g_is_found = FALSE;
+
 static void startup(), cleanup();
 void (*tet_startup) () = startup;
 void (*tet_cleanup) () = cleanup;
@@ -65,6 +67,27 @@ struct tet_testlist tet_testlist[] = {
 static GMainLoop *loop = NULL;
 int ret;
 LocationObject* loc;
+
+static void comp_boundary(LocationBoundary *bound, gpointer user_data)
+{
+	LocationBoundary *check_bound = (LocationBoundary *) user_data;
+
+	if(bound && bound->type == check_bound->type) {
+		switch(bound->type) {
+			case LOCATION_BOUNDARY_RECT:
+				if(bound->rect.right_bottom->latitude == check_bound->rect.right_bottom->latitude &&
+					bound->rect.right_bottom->longitude == check_bound->rect.right_bottom->longitude &&
+					bound->rect.left_top->latitude == check_bound->rect.left_top->latitude &&
+					bound->rect.left_top->longitude == check_bound->rect.left_top->longitude ){
+						g_is_found = TRUE;
+					}
+						break;
+			default:
+				break;
+		}
+	}
+}
+
 
 static gboolean
 exit_loop (gpointer data)
@@ -154,35 +177,34 @@ utc_location_svc_enabled()
 static void
 utc_set_boundary_in_suwonHQ()
 {
+	int ret = 0;
 	LocationPosition *rb = location_position_new(0, 37.253, 127.058, 0, LOCATION_STATUS_2D_FIX);
 	LocationPosition *lt = location_position_new(0, 37.261, 127.052, 0, LOCATION_STATUS_2D_FIX);
 	LocationBoundary *bound = location_boundary_new_for_rect(lt, rb);
 	location_position_free (rb);
 	location_position_free (lt);
-	g_object_set(loc, "boundary", bound, NULL);	
-	if (loc) {		
-		tet_result(TET_PASS);
-		location_boundary_free (bound);
-	} else tet_result(TET_FAIL);
+	ret = location_boundary_add(loc, bound);
+	if (!ret) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+
+	location_boundary_free (bound);
 }
 
 static void
 utc_get_boundary_in_suwonHQ()
 {
-	LocationBoundary* bound = NULL;	
-	
-	g_object_get(loc, "boundary", &bound, NULL);
-	if ( bound && 
-		bound->type ==LOCATION_BOUNDARY_RECT &&
-		bound->rect.right_bottom->latitude == 37.253 &&
-		bound->rect.right_bottom->longitude == 127.058 &&
-		bound->rect.left_top->latitude == 37.261 &&
-		bound->rect.left_top->longitude == 127.052 ){		
-		tet_result(TET_PASS);
-		location_boundary_free (bound);
-	}
-	else
-		tet_result(TET_FAIL);
+	LocationPosition *rb = location_position_new(0, 37.253, 127.058, 0, LOCATION_STATUS_2D_FIX);
+	LocationPosition *lt = location_position_new(0, 37.261, 127.052, 0, LOCATION_STATUS_2D_FIX);
+	LocationBoundary *bound = location_boundary_new_for_rect(lt, rb);
+	location_position_free (rb);
+	location_position_free (lt);
+
+	g_is_found = FALSE;
+	location_boundary_foreach(loc, comp_boundary, bound);
+	if(g_is_found) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+
+	location_boundary_free (bound);
 }
 
 static void
@@ -211,35 +233,35 @@ utc_zone_in()
 static void
 utc_set_boundary_in_Santorini()
 {
+	int ret = 0;
 	LocationPosition *rb = location_position_new(0, 36.395, 25.41, 0, LOCATION_STATUS_2D_FIX);
 	LocationPosition *lt = location_position_new(0, 36.413, 25.388, 0, LOCATION_STATUS_2D_FIX);
 	LocationBoundary* bound = location_boundary_new_for_rect(lt, rb);
 	location_position_free (rb);
 	location_position_free (lt);
-	g_object_set(loc, "boundary", bound, NULL);		
 
-	if (loc) {
-		tet_result(TET_PASS);
-		location_boundary_free (bound);
-	} else tet_result(TET_FAIL);
+	ret = location_boundary_add(loc, bound);
+	if (!ret) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+
+	location_boundary_free (bound);
 }
 
 static void
 utc_get_boundary_in_Santorini()
 {
-	LocationBoundary* bound = NULL;	
-	g_object_get(loc, "boundary", &bound, NULL);
+	LocationPosition *rb = location_position_new(0, 36.395, 25.41, 0, LOCATION_STATUS_2D_FIX);
+	LocationPosition *lt = location_position_new(0, 36.413, 25.388, 0, LOCATION_STATUS_2D_FIX);
+	LocationBoundary* bound = location_boundary_new_for_rect(lt, rb);
+	location_position_free (rb);
+	location_position_free (lt);
 
-	if ( bound && 
-		bound->type ==LOCATION_BOUNDARY_RECT &&
-		bound->rect.right_bottom->latitude == 36.395 &&
-		bound->rect.right_bottom->longitude == 25.41 &&
-		bound->rect.left_top->latitude == 36.413 &&
-		bound->rect.left_top->longitude == 25.388 ){
-		tet_result(TET_PASS);
-		location_boundary_free (bound);
-	} else tet_result(TET_FAIL);		
-		
+	g_is_found = FALSE;
+	location_boundary_foreach(loc, comp_boundary, bound);
+	if(g_is_found) tet_result(TET_PASS);
+	else tet_result(TET_FAIL);
+
+	location_boundary_free (bound);
 }
 
 static void

@@ -20,6 +20,7 @@
  */
 
 #include <glib.h>
+#include <string.h>
 #include <glib/gprintf.h>
 #include <gconf/gconf-client.h>
 #include <location/location.h>
@@ -182,6 +183,25 @@ static double PromptDB()
 	buf[strlen(buf)-1]='\0';
 	ret = g_ascii_strtod(buf, NULL);
 	return ret;
+}
+
+static void PrintPos (gpointer data, gpointer user_data)
+{
+	LocationPosition *pos = (LocationPosition *)data;
+	if (pos) {
+		g_printf("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+		location_position_free (pos);
+	}
+}
+
+static void PrintAcc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+	if (acc) {
+		g_printf("level: [%d], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_accuracy_free (acc);
+	}
+
 }
 
 gulong g_sig_enable = 0;
@@ -380,18 +400,17 @@ cb_service_updated (GObject *self,
 }
 
 static void cb_position (LocationError error,
-	LocationPosition *position,
-	LocationAccuracy *acc,
+	GList *pos_list,
+	GList *acc_list,
 	gpointer userdata)
 {
 	if (error != LOCATION_ERROR_NONE) {
 		g_printf("cb_position failed: error=%d\n", error);
 		return;
 	}
-	char str[STR_MAX];
-	g_printf("userdata[0x%x] time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", (unsigned int)userdata, position->timestamp, position->latitude, position->longitude, position->altitude);
-	GetAccuracyLevel(str, acc->level);
-	g_printf("level: [%s], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", str, acc->horizontal_accuracy, acc->vertical_accuracy);
+
+	g_list_foreach (pos_list, PrintPos, NULL);
+	g_list_foreach (acc_list, PrintAcc, NULL);
 }
 
 static void cb_address(LocationError error, LocationAddress *addr, LocationAccuracy *acc, gpointer userdata)
@@ -474,19 +493,23 @@ static void print_menu()
 	g_printf("4.   location_start\n");
 	g_printf("5.   location_stop\n");
 	g_printf("6.   location_get_position\n");
-	g_printf("6a.  location_get_last_known_position\n");
+	g_printf("6a.  location_get_last_position\n");
+	g_printf("6b.  location_get_last_known_position - will be deprecated. \n");
 	g_printf("7.   location_get_position_from_address\n");
 	g_printf("7a.  location_get_position_from_address_async\n");
 	g_printf("8.   location_get_position_from_freeformed_address\n");
 	g_printf("8a.  location_get_position_from_freeformed_address_async\n");
 	g_printf("9.   location_get_velocity\n");
-	g_printf("10.  location_get_address\n");
-	g_printf("10a. location_get_address_async\n");
-	g_printf("11.  location_get_address_from_position\n");
-	g_printf("11a. location_get_address_from_position_async\n");
-	g_printf("12.  location_get_distance\n");
-	g_printf("13.  location_is_supported_method\n");
-	g_printf("14.  location_is_enabled_gps\n");
+	g_printf("9a.  location_get_last_velocity\n");
+	g_printf("10.  location_get_satellite\n");
+	g_printf("10a. location_get_last_satellite\n");
+	g_printf("11.  location_get_address\n");
+	g_printf("11a. location_get_address_async\n");
+	g_printf("12.  location_get_address_from_position\n");
+	g_printf("12a. location_get_address_from_position_async\n");
+	g_printf("13.  location_get_distance\n");
+	g_printf("14.  location_is_supported_method\n");
+	g_printf("15.  location_is_enabled_gps\n");
 	g_printf("99.  location_send_command\n");
 	g_printf("a?.  signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
 	g_printf("b?.  disconnect signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
@@ -504,7 +527,7 @@ int main(int argc, char** argv)
 	GError *gerr = NULL;
 
 	// If application is executed by AUL, this is not needed.
-	g_setenv("PKG_NAME", "org.tizen.location-api-test", 1);
+	g_setenv("PKG_NAME", "com.samsung.location-api-test", 1);
 
 	g_type_init();
 	if( !g_thread_supported() )
@@ -541,7 +564,7 @@ int main(int argc, char** argv)
 				g_printf("Location object already existed: [0x%x]", (unsigned int)location_obj);
 				continue;
 			}
-			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_CPS[3] LOCATION_METHOD_IPS[4] LOCATION_METHOD_SPS[5]\n");
+			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_SPS[5]\n");
 			g_printf("Select Location Method: ");
 			LocationMethod method = PromptInt();
 			location_obj = location_new(method);
@@ -579,23 +602,44 @@ int main(int argc, char** argv)
 			if(pos) location_position_free(pos);
 			if(acc) location_accuracy_free(acc);
 		} else if (0 == g_strcmp0("6a",strOpt)) {
+			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_SPS[5]\n");
+			g_printf("Select Location Method: ");
+			LocationMethod method = PromptInt();
+			LocationPosition *last_pos;
+			LocationAccuracy *last_acc;
+			int ret = 0;
+
+			ret = location_get_last_position (location_obj, LOCATION_METHOD_GPS, &last_pos, &last_acc);
+			if (ret == LOCATION_ERROR_NONE) {
+				g_debug ("SYNC>> Last position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
+					last_pos->timestamp, last_pos->latitude, last_pos->longitude, last_pos->altitude, last_pos->status);
+				g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+					last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
+				location_position_free(last_pos);
+				location_accuracy_free(last_acc);
+			} else g_warning ("SYNC>> Last position> failed. Error[%d]",ret);
+
+		} else if (0 == g_strcmp0("6b",strOpt)) {
+			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_SPS[5]\n");
+			g_printf("Select Location Method: ");
+			LocationMethod method = PromptInt();
 			LocationLastPosition last_pos;
-			ret = location_get_last_known_position(location_obj, &last_pos);
+			ret = location_get_last_known_position(location_obj, method, &last_pos);
 			GetLocationError(str, ret);
 			g_printf("location_get_last_known_position: returned value [%s]\n", str);
 			if (ret == LOCATION_ERROR_NONE) {
-				g_printf("last position latitude: [%f], longitude: [%f], accuracy: [%f]\n", last_pos.latitude, last_pos.longitude, last_pos.accuracy);
+				g_printf("last position method[%d], latitude: [%f], longitude: [%f], altitude: [%f], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", last_pos.method, last_pos.latitude, last_pos.longitude, last_pos.altitude, last_pos.horizontal_accuracy, last_pos.vertical_accuracy);
 			}
 		} else if (0 == g_strcmp0("7",strOpt)) {
 			LocationAddress *add = NULL;
-			LocationPosition *pos = NULL;
-			LocationAccuracy *acc = NULL;
+			GList *pos_list = NULL;
+			GList *acc_list = NULL;
 
-			g_printf("[0].San jose [1].¼ö¿ø»ï¼º [2].Suwon HQ [*].Custom\n");
+			g_printf("[0].San jose [1].ìˆ˜ì› ì‚¼ì„±  [2].Suwon HQ [*].Custom\n");
 			g_printf("Select Address: ");
 			int opt = PromptInt();
 			if (opt == 0)      add = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-			else if (opt == 1) add = location_address_new (NULL, "»ï¼º·Î", "¸ÅÅº3µ¿", "¼ö¿ø½Ã ¿µÅë±¸", "°æ±âµµ", NULL, NULL);
+			else if (opt == 1) add = location_address_new (NULL, "ì‚¼ì„±ì „ìž", "ë§¤íƒ„ 3ë™", "ìˆ˜ì›ì‹œ ì˜í†µêµ¬", "ê²½ê¸°ë„",  NULL, NULL);
 			else if (opt == 2) add = location_address_new (NULL, "Samsung Electro-Mechanics Co. LTD", "Maetan 3-dong", "Suwon Si Yeongtong-gu", "Gyeonggi-do", NULL, NULL);
 			else {
 				char building_number[255], street[255], state[255], country_code[255], city[255], district[255], postal_code[255];
@@ -622,25 +666,25 @@ int main(int argc, char** argv)
 				postal_code[strlen(postal_code)-1]='\0';
 				add = location_address_new(building_number, street, district, city, state, country_code, postal_code);
 			}
-			ret = location_get_position_from_address (location_obj, add, &pos, &acc);
+			ret = location_get_position_from_address (location_obj, add, &pos_list, &acc_list);
 			if(add) location_address_free (add);
 			GetLocationError(str, ret);
 			g_printf("location_get_position_from_adress: returned value [%s]\n", str);
-			if (ret == LOCATION_ERROR_NONE)
-				g_printf("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
-			if(pos) location_position_free(pos);
-			if(acc) location_accuracy_free(acc);
+			if (ret == LOCATION_ERROR_NONE) {
+				g_list_foreach (pos_list, PrintPos, NULL);
+				g_list_foreach (acc_list, PrintAcc, NULL);
+			}
 		} else if (0 == g_strcmp0("7a",strOpt)) {
 			IdleData* data = g_new0(IdleData, 1);
 			data->obj = location_obj;
 			data->pos_cb = cb_position;
 			data->user_data = location_obj;
 
-			g_printf("[0].San jose [1].¼ö¿ø»ï¼º [2].Suwon HQ [*].Custom\n");
+			g_printf("[0].San jose [1].ìˆ˜ì› ì‚¼ì„±  [2].Suwon HQ [*].Custom\n");
 			g_printf("Select Address: ");
 			int opt = PromptInt();
 			if (opt == 0)      data->addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-			else if (opt == 1) data->addr = location_address_new (NULL, "»ï¼º·Î", "¸ÅÅº3µ¿", "¼ö¿ø½Ã ¿µÅë±¸", "°æ±âµµ", NULL, NULL);
+			else if (opt == 1) data->addr = location_address_new (NULL, "ì‚¼ì„±ì „ìž", "ë§¤íƒ„3ë™", "ìˆ˜ì›ì‹œ ì˜í†µêµ¬", "ê²½ê¸°ë„", NULL, NULL);
 			else if (opt == 2) data->addr = location_address_new (NULL, "Samsung Electro-Mechanics Co. LTD", "Maetan 3-dong", "Suwon Si Yeongtong-gu", "Gyeonggi-do", NULL, NULL);
 			else {
 				char building_number[255], street[255], state[255], country_code[255], city[255], district[255], postal_code[255];
@@ -670,16 +714,16 @@ int main(int argc, char** argv)
 			g_idle_add((GSourceFunc)idle_position_from_address_async, data);
 		}else if (0 == g_strcmp0("8",strOpt)) {
 			gchar* addr = NULL;
-			LocationPosition *pos = NULL;
-			LocationAccuracy *acc = NULL;
+			GList *pos_list = NULL;
+			GList *acc_list = NULL;
 
-			g_printf("[0].San jose [1].¼ö¿ø»ï¼º [2].Suwon HQ [*].Custom\n");
+			g_printf("[0].San jose [1].ìˆ˜ì›ì‚¼ì„±  [2].Suwon HQ [*].Custom\n");
 			g_printf("Select Address: ");
 			int opt = PromptInt();
 			if(opt == 0){
 				addr = g_strdup("4 N 2nd Street 95113");
 			}else if(opt == 1){
-				addr = g_strdup("´ëÇÑ¹Î±¹ °æ±âµµ ¼ö¿ø½Ã ¿µÅë±¸ ¸ÅÅºµ¿ 436-52");
+				addr = g_strdup("ê²½ê¸°ë„ ìˆ˜ì›ì‹œ ì˜í†µêµ¬ ë§¤íƒ„ 3ë™ ì‚¼ì„±ì „ìž");
 			}else if(opt == 2){
 				addr = g_strdup("Samsung Electronics Co. LTD Maetan 3-dong, Suwon Si Yeongtong-gu, Gyeonggi-Do (Seoul 443-742 Korea), Rep of KOREA");
 			}else{
@@ -689,27 +733,26 @@ int main(int argc, char** argv)
 				buf[strlen(buf)-1]='\0';
 				addr = g_strdup(buf);
 			}
-			ret = location_get_position_from_freeformed_address(location_obj, addr, &pos, &acc);
+			ret = location_get_position_from_freeformed_address(location_obj, addr, &pos_list, &acc_list);
 			g_free(addr);
 			GetLocationError(str, ret);
 			g_printf("location_get_position_from_freeformed_adress: returned value [%s]\n", str);
 			if(ret == LOCATION_ERROR_NONE){
-				g_printf("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+				g_list_foreach (pos_list, PrintPos, NULL);
+				g_list_foreach (acc_list, PrintAcc, NULL);
 			}
-			if(pos) location_position_free(pos);
-			if(acc) location_accuracy_free(acc);
 		}else if(0 == g_strcmp0("8a",strOpt) ){
 			IdleData* data = g_new0(IdleData, 1);
 			data->obj = location_obj;
 			data->pos_cb = cb_position;
 			data->user_data = location_obj;
-			g_printf("[0].San jose [1].¼ö¿ø»ï¼º [2].Suwon HQ [*].Custom\n");
+			g_printf("[0].San jose [1].ìˆ˜ì› ì‚¼ì„±  [2].Suwon HQ [*].Custom\n");
 			g_printf("Select Address: ");
 			int opt = PromptInt();
 			if(opt == 0){
 				data->str_addr = g_strdup("4 N 2nd Street 95113");
 			}else if(opt == 1){
-				data->str_addr = g_strdup("´ëÇÑ¹Î±¹ °æ±âµµ ¼ö¿ø½Ã ¿µÅë±¸ ¸ÅÅºµ¿ 436-52");
+				data->str_addr = g_strdup("ê²½ê¸°ë„ ìˆ˜ì›ì‹œ ì˜í†µêµ¬ ë§¤íƒ„ 3ë™ ì‚¼ì„±ì „ìž");
 			}else if(opt == 2){
 				data->str_addr = g_strdup("Samsung Electronics Co. LTD Maetan 3-dong, Suwon Si Yeongtong-gu, Gyeonggi-Do (Seoul 443-742 Korea), Rep of KOREA");
 			}else{
@@ -734,7 +777,57 @@ int main(int argc, char** argv)
 			}
 			if(vel) location_velocity_free(vel);
 			if(acc) location_accuracy_free(acc);
-		} else if(0 == g_strcmp0("10",strOpt) ){
+		}else if(0 == g_strcmp0("9a",strOpt) ){
+			LocationVelocity *last_vel = NULL;
+			LocationAccuracy *last_acc = NULL;
+			if (LOCATION_ERROR_NONE == location_get_last_velocity (location_obj, &last_vel, &last_acc)) {
+				g_debug ("SYNC>> Last velocity> time: %d, speed: %f, direction:%f, climb:%f",
+					last_vel->timestamp, last_vel->speed, last_vel->direction, last_vel->climb);
+				g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+					last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
+				location_velocity_free(last_vel);
+				location_accuracy_free(last_acc);
+			} else g_warning ("SYNC>> Last velocity> failed.");
+		}else if(0 == g_strcmp0("10",strOpt) ){
+			int ret = 0, idx = 0;
+			LocationSatellite *sat = NULL;
+			guint prn;
+			gboolean used;
+			guint elevation;
+			guint azimuth;
+			gint snr;
+
+			ret =  location_get_satellite (location_obj, &sat);
+			if (ret == LOCATION_ERROR_NONE) {
+				g_debug ("SYNC>> Current Sattelite> satellite in view = %d, satellite in used = %d", sat->num_of_sat_inview, sat->num_of_sat_used);
+				g_debug ("\tinview satellite information = ");
+				for (idx=0; idx<sat->num_of_sat_inview; idx++) {
+					location_satellite_get_satellite_details(sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+					g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
+				}
+				location_satellite_free (sat);
+			} else g_warning ("SYNC>> Current satellite> failed. Error[%d]", ret);
+		}else if(0 == g_strcmp0("10a",strOpt) ){
+			int ret = 0, idx = 0;
+			LocationSatellite *last_sat = NULL;
+			guint prn;
+			gboolean used;
+			guint elevation;
+			guint azimuth;
+			gint snr;
+
+			ret = location_get_last_satellite (location_obj, &last_sat);
+
+			if (ret == LOCATION_ERROR_NONE) {
+				g_debug ("SYNC>> Last Sattelite> satellite in view = %d, satellite in used = %d", last_sat->num_of_sat_inview, last_sat->num_of_sat_used);
+				g_debug ("\tinview satellite information = ");
+				for (idx=0; idx<last_sat->num_of_sat_inview; idx++) {
+					location_satellite_get_satellite_details(last_sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+					g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
+				}
+				location_satellite_free (last_sat);
+			} else g_warning ("SYNC>> Last satellite> failed");
+		} else if(0 == g_strcmp0("11",strOpt) ){
 			LocationAddress *addr = NULL;
 			LocationAccuracy *acc = NULL;
 			ret = location_get_address(location_obj, &addr, &acc);
@@ -746,13 +839,13 @@ int main(int argc, char** argv)
 				GetAccuracyLevel(str, acc->level);
 				g_printf("level: [%s], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", str, acc->horizontal_accuracy, acc->vertical_accuracy);
 			}
-		}else if(0 == g_strcmp0("10a",strOpt) ){
+		}else if(0 == g_strcmp0("11a",strOpt) ){
 			IdleData* data = g_new0(IdleData, 1);
 			data->obj = location_obj;
 			data->addr_cb = cb_address;
 			data->user_data = location_obj;
 			g_idle_add((GSourceFunc)idle_address_async, data);
-		}else if(0 == g_strcmp0("11",strOpt) ){
+		}else if(0 == g_strcmp0("12",strOpt) ){
 			LocationPosition *pos = NULL;
 			LocationAddress *addr = NULL;
 			LocationAccuracy *acc = NULL;
@@ -777,7 +870,7 @@ int main(int argc, char** argv)
 			}
 			if(addr) location_address_free(addr);
 			if(acc) location_accuracy_free(acc);
-		}else if(0 == g_strcmp0("11a",strOpt) ){
+		}else if(0 == g_strcmp0("12a",strOpt) ){
 			IdleData* data = g_new0(IdleData, 1);
 			data->obj = location_obj;
 			data->addr_cb = cb_address;
@@ -796,7 +889,7 @@ int main(int argc, char** argv)
 				data->pos = location_position_new(0, lat, lon, 0, LOCATION_STATUS_2D_FIX);
 			}
 			g_idle_add((GSourceFunc)idle_address_from_position_async, data);
-		}else if(0 == g_strcmp0("12",strOpt) ) {
+		}else if(0 == g_strcmp0("13",strOpt) ) {
 
 			gulong distance;
 			int ret = 0;
@@ -818,7 +911,7 @@ int main(int argc, char** argv)
 					g_printf("The approximate distance is [%lu]\n", distance);
 					g_printf("cf.) It is approximately 969954.114 meter\n");
 			}
-		}else if(0 == g_strcmp0("13", strOpt)) {
+		}else if(0 == g_strcmp0("14", strOpt)) {
 			int method;
 			char method_str[STR_MAX] = {0, };
 			char input[8] = {0, };
@@ -855,7 +948,7 @@ int main(int argc, char** argv)
 
 			g_printf("Method[%s] is %s.", method_str, is_supported ? "supported" : "not supported");
 
-		}else if(0 == g_strcmp0("14", strOpt)) {
+		}else if(0 == g_strcmp0("15", strOpt)) {
 			gboolean is_enabled = FALSE;
 			is_enabled = location_is_enabled_gps(location_obj);
 			if(is_enabled == TRUE) g_printf("GPS is turned on");

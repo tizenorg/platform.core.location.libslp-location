@@ -28,7 +28,7 @@
 
 /**
  * @file location-setting.h
- * @brief This file contains the defintions and functions for setting.
+ * @brief This file contains the definitions and functions for setting.
  * @addtogroup LocationInternal
  * @{
  * @}
@@ -36,10 +36,31 @@
 
 #define VCONF_LOCATION_PATH 		"db/location"
 
-#define LOCATION_POSITION_PATH 		VCONF_LOCATION_PATH"/position"
-#define LAST_TIMESTAMP			LOCATION_POSITION_PATH"/Timestamp"
-#define LAST_POSITION 			LOCATION_POSITION_PATH"/LastPosition"
-#define LAST_ACCURACY			LOCATION_POSITION_PATH"/LastAccuracy"
+#define LOCATION_LAST_POSITION_PATH 		VCONF_LOCATION_PATH"/lastposition"
+#define GPS_LAST_POSITION_PATH			LOCATION_LAST_POSITION_PATH"/gps"
+#define WPS_LAST_POSITION_PATH			LOCATION_LAST_POSITION_PATH"/wps"
+#define SPS_LAST_POSITION_PATH			LOCATION_LAST_POSITION_PATH"/sps"
+
+#define GPS_LAST_TIMESTAMP   	GPS_LAST_POSITION_PATH"/Timestamp"
+#define GPS_LAST_LATITUDE   	GPS_LAST_POSITION_PATH"/Latitude"
+#define GPS_LAST_LONGITUDE    	GPS_LAST_POSITION_PATH"/Longitude"
+#define GPS_LAST_ALTITUDE    	GPS_LAST_POSITION_PATH"/Altitude"
+#define GPS_LAST_HORACCURACY  	GPS_LAST_POSITION_PATH"/HorAccuracy"
+#define GPS_LAST_VERACCURACY  	GPS_LAST_POSITION_PATH"/VerAccuracy"
+
+#define WPS_LAST_TIMESTAMP   	WPS_LAST_POSITION_PATH"/Timestamp"
+#define WPS_LAST_LATITUDE   	WPS_LAST_POSITION_PATH"/Latitude"
+#define WPS_LAST_LONGITUDE    	WPS_LAST_POSITION_PATH"/Longitude"
+#define WPS_LAST_ALTITUDE    	WPS_LAST_POSITION_PATH"/Altitude"
+#define WPS_LAST_HORACCURACY  	WPS_LAST_POSITION_PATH"/HorAccuracy"
+#define WPS_LAST_VERACCURACY  	WPS_LAST_POSITION_PATH"/VerAccuracy"
+
+#define SPS_LAST_TIMESTAMP   	SPS_LAST_POSITION_PATH"/Timestamp"
+#define SPS_LAST_LATITUDE   	SPS_LAST_POSITION_PATH"/Latitude"
+#define SPS_LAST_LONGITUDE    	SPS_LAST_POSITION_PATH"/Longitude"
+#define SPS_LAST_ALTITUDE    	SPS_LAST_POSITION_PATH"/Altitude"
+#define SPS_LAST_HORACCURACY  	SPS_LAST_POSITION_PATH"/HorAccuracy"
+#define SPS_LAST_VERACCURACY  	SPS_LAST_POSITION_PATH"/VerAccuracy"
 
 #define GPS_ENABLED 			VCONFKEY_LOCATION_ENABLED
 #define LOCATION_SETTING_PATH 		VCONF_LOCATION_PATH"/setting"

@@ -160,6 +160,77 @@ int location_free (LocationObject *obj);
 #include <location.h>
 static GMainLoop *loop = NULL;
 
+static void cb_service_enabled (GObject *self, guint status, gpointer userdata)
+{
+	LocationObject *loc = (LocationObject*)userdata;
+	LocationAccuracy *acc = NULL;
+	LocationPosition *pos = NULL;
+	LocationVelocity *vel = NULL;
+	LocationAddress *addr = NULL;
+	LocationMethod method;
+
+	g_object_get(loc, "method", &method, NULL);
+	g_debug("Get property>> method:%d", method);
+
+	if (LOCATION_ERROR_NONE == location_get_position (loc, &pos, &acc)) {
+		g_debug ("SYNC>> Current position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
+			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+			acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_position_free(pos);
+		location_accuracy_free(acc);
+	} else g_warning ("SYNC>> Current position> failed");
+
+	if (LOCATION_ERROR_NONE == location_get_velocity (loc, &vel, &acc)) {
+		g_debug ("SYNC>> Current velocity> time: %d, speed: %f, direction:%f, climb:%f",
+				vel->timestamp, vel->speed, vel->direction, vel->climb);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+				acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_velocity_free(vel);
+		location_accuracy_free(acc);
+	} else g_warning ("SYNC>> Current velocity> failed");
+
+	if (LOCATION_ERROR_NONE == location_get_address(loc, &addr, &acc)) {
+		g_debug ("SYNC>> Current address> %s %s %s %s %s %s %s",
+				addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_address_free(addr);
+		location_accuracy_free(acc);
+	} else g_warning ("SYNC>> Current address> failed");
+}
+
+static void
+cb_service_updated (GObject *self,
+       guint type,
+       gpointer data,
+       gpointer accuracy,
+       gpointer userdata)
+{
+	LocationAccuracy *acc = (LocationAccuracy*) accuracy;
+	switch (type) {
+		case POSITION_UPDATED: {
+			LocationPosition *pos = (LocationPosition*) data;
+			g_debug ("ASYNC>> Current position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
+				pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
+			g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+				acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		}
+			break;
+		case VELOCITY_UPDATED: {
+			LocationVelocity *vel = (LocationVelocity*) data;
+			g_debug ("ASYNC>> Current velocity> time: %d, speed: %f, direction:%f, climb:%f",
+					vel->timestamp, vel->speed, vel->direction, vel->climb);
+			g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+					acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		}
+			break;
+		default:
+			g_warning ("ASYNC>> Undefined update type");
+			break;
+	}
+}
+
+
 int main (int argc, char *argv[])
 {
 	LocationObject *loc = NULL;
@@ -172,6 +243,9 @@ int main (int argc, char *argv[])
 
 	g_object_set(loc, "update-interval", interval, NULL);
 
+	g_signal_connect (loc, "service-enabled", G_CALLBACK(cb_service_enabled), loc);
+	g_signal_connect (loc, "service-updated", G_CALLBACK(cb_service_updated), loc);
+
 	location_start(loc);
 	loop = g_main_loop_new (NULL, TRUE);
 	g_main_loop_run (loop);  // GMainLoop is needed for receiving signals.
@@ -179,8 +253,8 @@ int main (int argc, char *argv[])
 	// ...
 	return 0;
 }
- * @endcode
- */
+* @endcode
+*/
 int location_start (LocationObject *obj);
 
 /**
@@ -360,22 +434,27 @@ int main (int argc, char *argv[])
 }
  * @endcode
  */
-int location_get_position (LocationObject *obj, LocationPosition **position,	LocationAccuracy **accuracy);
+int location_get_position (LocationObject *obj, LocationPosition **position, LocationAccuracy **accuracy);
 
 /**
  * @brief
- * Get last known position information with estimate of the accuracy.
- * @remarks None.
+ * Get last position information with estimate of the accuracy.
+ * @remarks This API is not implemented now. \n
+ *   Out parameters are should be freed.
  * @pre
  * #location_init should be called before.
  * @post None.
  * @param [in]
  * obj - a #LocationObject created by #location_new
- * @param [in]
- * last_position - a #LocationLastPosition
+ * @param [out]
+ * position - a new #LocationPosition
+ * @param [out]
+ * accuracy - a new #LocationAccuracy
  * @return int
  * @retval 0                              Success
  *
+ * Please refer #LocationError for more information.
+ * @see location_get_position
  * @par Example
  * @code
 #include <location.h>
@@ -383,24 +462,152 @@ int location_get_position (LocationObject *obj, LocationPosition **position,	Loc
 int main (int argc, char *argv[])
 {
 	LocationObject *loc = NULL;
-	LocationLastPosition last_pos;
+	int ret = 0;
+	LocationPosition *last_pos = NULL;
+	LocationAccuracy *last_acc = NULL;
+
 	location_init ();
 	loc  = location_new (LOCATION_METHOD_GPS);
-	if (!loc) {
+	if(!loc){
 		g_debug("location_new failed");
 		return -1;
 	}
 
-	location_get_last_known_position(loc, &last_pos);
-	g_debug ("Last known position > lat: %f, long: %f, acc: %f", last_pos.latitude, last_pos.longitude, last_pos.accuracy);
+	if (LOCATION_ERROR_NONE == location_get_last_position (loc, LOCATION_METHOD_GPS, &last_pos, &last_acc)) {
+		g_debug ("SYNC>> Last position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
+			last_pos->timestamp, last_pos->latitude, last_pos->longitude, last_pos->altitude, last_pos->status);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+			last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
+		location_position_free(last_pos);
+		location_accuracy_free(last_acc);
+	} else g_warning ("SYNC>> Last position> failed");
 
 	location_free (loc);
+
 	return 0;
 }
  * @endcode
  */
-int location_get_last_known_position (LocationObject *obj, LocationLastPosition *last_position);
+int location_get_last_position (LocationObject *obj, LocationMethod method, LocationPosition **position, LocationAccuracy **accuracy);
 
+/**
+ * @brief
+ * Get last satellite information.
+ * @remarks This API is not implemented now. \n
+ *   Out parameters are should be freed.
+ * @pre
+ * #location_init should be called before.
+ * @post None.
+ * @param [in]
+ * obj - a #LocationObject created by #location_new
+ * @param [out] satellite - a new #LocationSatellite
+ * @return int
+ * @retval 0                              Success
+ * Please refer #LocationError for more information.
+ * @see location_get_last_satellite
+ * @par Example
+ * @code
+#include <location.h>
+
+int main (int argc, char *argv[])
+{
+	LocationObject *loc = NULL;
+	int ret = 0, idx = 0;
+	LocationSatellite *sat = NULL;
+	guint prn;
+	gboolean used;
+	guint elevation;
+	guint azimuth;
+	gint snr;
+
+	location_init ();
+	loc  = location_new (LOCATION_METHOD_GPS);
+	if(!loc){
+		g_debug("location_new failed");
+		return -1;
+	}
+
+	if (LOCATION_ERROR_NONE == location_get_satellite (loc, &sat)) {
+		g_debug ("SYNC>> Current Sattelite> satellite in view = %d, satellite in used = %d", sat->num_of_sat_inview, sat->num_of_sat_used);
+		g_debug ("\tinview satellite information = ");
+		for (idx=0; idx<sat->num_of_sat_inview; idx++) {
+			location_satellite_get_satellite_details(sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+			g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
+		}
+		location_satellite_free (sat);
+	} else g_warning ("SYNC>> Current satellite> failed");
+
+	location_free (loc);
+
+	return 0;
+}
+ * @endcode
+ */
+int location_get_satellite (LocationObject *obj, LocationSatellite **satellite);
+
+/**
+ * @brief
+ * Get last satellite information.
+ * @remarks This API is not implemented now. \n
+ *   Out parameters are should be freed.
+ * @pre
+ * #location_init should be called before.
+ * @post None.
+ * @param [in]
+ * obj - a #LocationObject created by #location_new
+ * @param [out]
+ * satellite - a new #LocationSatellite
+ * @return int
+ * @retval 0                              Success
+ *
+ * Please refer #LocationError for more information.
+ * @par Example
+ * @code
+#include <location.h>
+
+int main (int argc, char *argv[])
+{
+	LocationObject *loc = NULL;
+	int ret = 0, idx = 0;
+	LocationSatellite *last_sat = NULL;
+	guint prn;
+	gboolean used;
+	guint elevation;
+	guint azimuth;
+	gint snr;
+
+	location_init ();
+	loc  = location_new (LOCATION_METHOD_GPS);
+	if(!loc){
+		g_debug("location_new failed");
+		return -1;
+	}
+
+	if (LOCATION_ERROR_NONE == location_get_last_satellite (loc, &last_sat)) {
+		g_debug ("SYNC>> Last Sattelite> satellite in view = %d, satellite in used = %d", last_sat->num_of_sat_inview, last_sat->num_of_sat_used);
+		g_debug ("\tinview satellite information = ");
+		for (idx=0; idx<last_sat->num_of_sat_inview; idx++) {
+			location_satellite_get_satellite_details(last_sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+			g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
+		}
+		location_satellite_free (last_sat);
+	} else g_warning ("SYNC>> Last satellite> failed");
+
+	location_free (loc);
+
+	return 0;
+}
+ * @endcode
+ */
+int location_get_last_satellite (LocationObject *obj, LocationSatellite **satellite);
+
+/**
+ * @brief
+ * Get last known position information with estimate of the accuracy.
+ * @remarks This API would be DEPRECATED. \n
+ * @see location_get_last_position
+ */
+int location_get_last_known_position (LocationObject *obj, LocationMethod method, LocationLastPosition *last_position) LOCATION_DEPRECATED_API;
 
 /**
  * @brief
@@ -415,9 +622,9 @@ int location_get_last_known_position (LocationObject *obj, LocationLastPosition 
  * @param [in]
  * address - a #LocationAddress
  * @param [out]
- * position - a new #LocationPosition
+ * position_list - a list of #LocationPosition
  * @param [out]
- * accuracy - a new #LocationAccuracy
+ * accuracy_list - a list of #LocationAccuracy
  * @return int
  * @retval 0                              Success.
  *
@@ -427,6 +634,26 @@ int location_get_last_known_position (LocationObject *obj, LocationLastPosition 
  * @par Example
  * @code
 #include <location.h>
+
+static void PrintPos (gpointer data, gpointer user_data)
+{
+	LocationPosition *pos = (LocationPosition *)data;
+
+	if (pos) {
+		g_debug("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+		location_position_free (pos);
+	}
+}
+
+static void PrintAcc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+
+	if (acc) {
+		g_debug("level: [%d], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_accuracy_free (acc);
+	}
+}
 
 int main (int argc, char *argv[])
 {
@@ -440,27 +667,30 @@ int main (int argc, char *argv[])
 		return -1;
 	}
 
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
 	LocationAddress *addr = NULL;
 
 	addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-	if (LOCATION_ERROR_NONE == location_get_position_from_address(loc, addr, &pos, &acc)) {
-		g_debug ("SYNC>> position from address> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
-			acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_position_free (pos);
-		location_accuracy_free (acc);
+	if (LOCATION_ERROR_NONE == location_get_position_from_address(loc, addr, &pos_list, &acc_list)) {
+		g_list_foreach (pos_list, PrintPos, NULL);
+		g_list_foreach (acc_list, PrintAcc, NULL);
 	} else g_warning ("SYNC>> position from address> failed");
-	location_address_free (addr);
 
+	if (pos_list) {
+		g_list_free (pos_list);
+	}
+	if (acc_list) {
+		g_list_free (acc_list);
+	}
+
+	location_address_free (addr);
 	location_free (loc);
 	return 0;
 }
  * @endcode
  */
-int location_get_position_from_address (LocationObject *obj, const LocationAddress *address, LocationPosition **position, LocationAccuracy **accuracy);
+int location_get_position_from_address (LocationObject *obj, const LocationAddress *address, GList **position_list, GList **accuracy_list);
 
 /**
  * @brief
@@ -489,12 +719,30 @@ int location_get_position_from_address (LocationObject *obj, const LocationAddre
  * @code
 #include <location.h>
 
-static void
-cb_position_from_address (LocationError error, LocationPosition *pos, LocationAccuracy *acc, gpointer userdata)
+static void PrintPos (gpointer data, gpointer user_data)
 {
-	g_debug ("ASYNC>> location_get_position_from_address_async> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+	LocationPosition *pos = (LocationPosition *)data;
+
+	if (pos) {
+		g_debug("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+	}
+}
+
+static void PrintAcc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+
+	if (acc) {
+		g_debug("level: [%d], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+	}
+}
+static void
+cb_position_from_address (LocationError error, GList *position_list, GList *accuracy_list, gpointer userdata)
+{
+	if (position_list && accuracy_list) {
+		g_list_foreach (position_list, PrintPos);
+		g_list_foreach (accuracy_list, PrintAcc);
+	}
 }
 
 void get_position_from_address(LocationObject* loc)
@@ -523,9 +771,9 @@ int location_get_position_from_address_async (LocationObject *obj, const Locatio
  * @param [in]
  * address - Free-formed address string to be used
  * @param [out]
- * position - a new #LocationPosition
+ * position_list - a list of #LocationPosition
  * @param [out]
- * accuracy - a new #LocationAccuracy
+ * accuracy_list - a list of #LocationAccuracy
  * @return int
  * @retval 0                              Success
  *
@@ -535,6 +783,26 @@ int location_get_position_from_address_async (LocationObject *obj, const Locatio
  * @par Example
  * @code
 #include <location.h>
+
+static void PrintPos (gpointer data, gpointer user_data)
+{
+	LocationPosition *pos = (LocationPosition *)data;
+
+	if (pos) {
+		g_debug("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+		location_position_free (pos);
+	}
+}
+
+static void PrintAcc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+
+	if (acc) {
+		g_debug("level: [%d], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		location_accuracy_free (acc);
+	}
+}
 
 int main (int argc, char *argv[])
 {
@@ -548,26 +816,22 @@ int main (int argc, char *argv[])
 		return -1;
 	}
 
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
 	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_position_from_freeformed_address(loc, addr_str, &pos, &acc)) {
-		g_debug ("SYNC>> position from freeformed address> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_position_free (pos);
-		location_accuracy_free (acc);
+	if (LOCATION_ERROR_NONE == location_get_position_from_freeformed_address(loc, addr_str, &pos_list, &acc_list)) {
+		g_list_foreach (pos_list, PrintPos, NULL);
+		g_list_foreach (acc_list, PrintAcc, NULL);
 	} else g_warning ("SYNC>> position from freeformed address> failed");
 	g_free(addr_str);
-
 
 	location_free (loc);
 	return 0;
 }
  * @endcode
  */
-int location_get_position_from_freeformed_address (LocationObject *obj, const gchar *address, LocationPosition **position, LocationAccuracy **accuracy);
+int location_get_position_from_freeformed_address (LocationObject *obj, const gchar *address, GList **position_list, GList **accuracy_list);
 
 /**
  * @brief
@@ -596,12 +860,31 @@ int location_get_position_from_freeformed_address (LocationObject *obj, const gc
  * @code
 #include <location.h>
 
-static void
-cb_position_from_freeformed_address (LocationError error, LocationPosition *pos, LocationAccuracy *acc, gpointer userdata)
+static void PrintPos (gpointer data, gpointer user_data)
 {
-	g_debug ("ASYNC>> location_get_position_from_freeformed_address_async> time: %d, lat: %f, long: %f, alt: %f, status: %d",
-			pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+	LocationPosition *pos = (LocationPosition *)data;
+
+	if (pos) {
+		g_debug("time: [%d], latitude: [%f], longitude: [%f], altitude: [%f]\n", pos->timestamp, pos->latitude, pos->longitude, pos->altitude);
+	}
+}
+
+static void PrintAcc (gpointer data, gpointer user_data)
+{
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+
+	if (acc) {
+		g_debug("level: [%d], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+	}
+}
+
+static void
+cb_position_from_freeformed_address (LocationError error, GList *position_list, GList *accuracy_list, gpointer userdata)
+{
+	if (position_list && accuracy_list) {
+		g_list_foreach (position_list, PrintPos);
+		g_list_foreach (accuracy_list, PrintAcc);
+	}
 }
 
 void get_position_from_address(LocationObject* loc)
@@ -688,6 +971,60 @@ int main (int argc, char *argv[])
  * @endcode
  */
 int location_get_velocity (LocationObject *obj, LocationVelocity **velocity, LocationAccuracy **accuracy);
+
+/**
+ * @brief
+ * Get last velocity information with estimate of the accuracy.
+ * @remarks This API is not implemented now. \n
+ * Out parameters are should be freed.
+ * @pre
+ * #location_init should be called before.\n
+ * @post None.
+ * @param [in]
+ * obj - a #LocationObject created by #location_new
+ * @param [out]
+ * velocity - a new #LocationVelocity
+ * @param [out]
+ * accuracy - a new #LocationAccuracy
+ * @return int
+ * @retval 0                              Success
+ *
+ * Please refer #LocationError for more information.
+ * @see location_get_velocity
+ * @par Example
+ * @code
+#include <location.h>
+
+int main (int argc, char *argv[])
+{
+	LocationObject *loc = NULL;
+	LocationVelocity *last_vel = NULL;
+	LocationAccuracy *last_acc = NULL;
+	location_init ();
+
+	loc  = location_new (LOCATION_METHOD_GPS);
+	if(!loc){
+		g_debug("location_new failed");
+		return -1;
+	}
+
+	if (LOCATION_ERROR_NONE == location_get_last_velocity (loc, &last_vel, &last_acc)) {
+		g_debug ("SYNC>> Last velocity> time: %d, speed: %f, direction:%f, climb:%f",
+			last_vel->timestamp, last_vel->speed, last_vel->direction, last_vel->climb);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+			last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
+		location_velocity_free(last_vel);
+		location_accuracy_free(last_acc);
+	} else g_warning ("SYNC>> Last velocity> failed.");
+
+	location_free (loc);
+
+	return 0;
+}
+ * @endcode
+ */
+int location_get_last_velocity (LocationObject *obj, LocationVelocity **velocity, LocationAccuracy **accuracy);
+
 
 /**
  * @brief

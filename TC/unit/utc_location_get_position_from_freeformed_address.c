@@ -21,7 +21,6 @@
 
 #include <tet_api.h>
 #include <glib.h>
-#include <gconf/gconf-client.h>
 #include <location.h>
 
 static void startup(), cleanup();
@@ -45,11 +44,7 @@ static GMainLoop *loop = NULL;
 LocationObject* loc;
 int ret;
 int isNetStarted = 0;
-
-#define GCONF_PROXY_MODE            "/system/proxy/mode"
-#define GCONF_HTTP_PROXY_HOST       "/system/http_proxy/host"
-#define GCONF_HTTP_PROXY_PORT       "/system/http_proxy/port"
-#define ENV_HTTP_PROXY              "http_proxy"
+gboolean is_found = FALSE;
 
 static gboolean
 exit_loop (gpointer data)
@@ -59,51 +54,69 @@ exit_loop (gpointer data)
 }
 
 static void startup()
-{	
+{
 	location_init();
 	loc = location_new(LOCATION_METHOD_GPS);
 
-	loop = g_main_loop_new(NULL,FALSE);		
-	g_main_loop_run (loop);
-
-	tet_printf("\n TC startup");	
+	loop = g_main_loop_new(NULL,FALSE);
+	tet_printf("\n TC startup");
 }
 
 static void cleanup()
-{	
+{
 	location_free(loc);
 	tet_printf("\n TC End");
 }
 
+static void comp_position (gpointer data, gpointer user_data)
+{
+	if (!data) return;
+	LocationPosition *pos = (LocationPosition *)data;
+	if (pos) {
+		if (37.325276 <= pos->latitude &&  pos->latitude <= 37.345276 &&
+		-121.900059 <= pos->longitude && pos->longitude<= -121.880059) {
+			is_found = TRUE;
+		}
+		location_position_free (pos);
+	}
+}
+
+static void free_accuracy (gpointer data, gpointer user_data)
+{
+	if (!data) return;
+
+	LocationAccuracy *acc = (LocationAccuracy *)data;
+	if (acc) location_accuracy_free(acc);
+}
+
 static void
 utc_location_get_position_from_freeformed_address_01()
-{	
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
+{
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
-	ret = location_get_position_from_freeformed_address(loc, addr_str, &pos, &acc);
+	ret = location_get_position_from_freeformed_address(loc, addr_str, &pos_list, &acc_list);
 	g_free(addr_str);
 	tet_printf("Returned value: %d", ret);
-	if( (ret == LOCATION_ERROR_NONE && 
-		37.325276 <= pos->latitude &&  pos->latitude <= 37.345276 &&
-		-121.900059 <= pos->longitude && pos->longitude<= -121.880059) ||
-		ret == LOCATION_ERROR_CONFIGURATION ) {
-		location_position_free (pos);
-		location_accuracy_free (acc);
-		tet_result(TET_PASS);
+	if (ret == LOCATION_ERROR_NONE ) {
+		g_list_foreach (pos_list, comp_position, NULL);
+		g_list_foreach (acc_list, free_accuracy, NULL);
+		if (is_found == TRUE)
+			tet_result(TET_PASS);
+		else
+			tet_result(TET_FAIL);
 	}
 	else
 		tet_result(TET_FAIL);
-	
 }
 
 static void
 utc_location_get_position_from_freeformed_address_02()
 {
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
-	ret = location_get_position_from_freeformed_address(NULL, addr_str, &pos, &acc);
+	ret = location_get_position_from_freeformed_address(NULL, addr_str, &pos_list, &acc_list);
 	g_free(addr_str);
 	tet_printf("Returned value: %d", ret);
 	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
@@ -113,9 +126,9 @@ utc_location_get_position_from_freeformed_address_02()
 static void
 utc_location_get_position_from_freeformed_address_03()
 {
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
-	ret = location_get_position_from_freeformed_address(loc, NULL, &pos, &acc);
+	GList *pos_list = NULL;
+	GList *acc_list = NULL;
+	ret = location_get_position_from_freeformed_address(loc, NULL, &pos_list, &acc_list);
 	tet_printf("Returned value: %d", ret);
 	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);
 	else tet_result(TET_FAIL);
@@ -124,9 +137,9 @@ utc_location_get_position_from_freeformed_address_03()
 static void
 utc_location_get_position_from_freeformed_address_04()
 {
-	LocationAccuracy *acc = NULL;
+	GList *acc_list = NULL;
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
-	ret = location_get_position_from_freeformed_address(loc, addr_str, NULL, &acc);
+	ret = location_get_position_from_freeformed_address(loc, addr_str, NULL, &acc_list);
 	g_free (addr_str);
 	tet_printf("Returned value: %d", ret);
 	if (ret == LOCATION_ERROR_PARAMETER) tet_result(TET_PASS);

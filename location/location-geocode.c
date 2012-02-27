@@ -100,29 +100,29 @@ location_geocode_get_property (GObject *object,
 static int
 location_geocode_get_geocode (LocationGeocode *self,
 	const LocationAddress *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	LOCATION_LOGD("location_geocode_get_geocode");
 	LocationGeocodePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode)(priv->mod->handler, address, position, accuracy);
+	return (priv->mod->ops.get_geocode)(priv->mod->handler, address, position_list, accuracy_list);
 }
 
 static int
 location_geocode_get_geocode_freeform (LocationGeocode *self,
 	const gchar  *address,
-	LocationPosition **position,
-	LocationAccuracy **accuracy)
+	GList **position_list,
+	GList **accuracy_list)
 {
 	LOCATION_LOGD("location_geocode_get_geocode_freeform");
 	LocationGeocodePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_freetext, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_freetext)(priv->mod->handler, address, position, accuracy);
+	return (priv->mod->ops.get_geocode_freetext)(priv->mod->handler, address, position_list, accuracy_list);
 }
 
 static int

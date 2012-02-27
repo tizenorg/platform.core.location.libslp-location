@@ -28,7 +28,7 @@ main (int argc, char *argv[])
 	LocationObject *loc = NULL;
 
 	// If application is executed by AUL, this is not needed.
-	g_setenv("PKG_NAME", "org.tizen.cps-test", 1);
+	g_setenv("PKG_NAME", "com.samsung.cps-test", 1);
 
 	location_init ();
 

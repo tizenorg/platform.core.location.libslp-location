@@ -74,9 +74,7 @@ position_signaling (LocationObject *obj,
 	GList *boundary_list = prev_bound;
 	LocationBoundary *boundary = NULL;
 
-	if (prev_enabled == FALSE) enable_signaling(obj, signals, prev_enabled, enabled, pos->status);
-
-	if(*prev_pos || !*prev_acc || location_accuracy_level_compare(*prev_acc, acc) != -1 ||
+	if(!*prev_pos || !*prev_acc || location_accuracy_level_compare(*prev_acc, acc) != -1 ||
 			(pos->timestamp - (*prev_pos)->timestamp) > POS_EXPIRATION_TIME) {
 
 		if(*prev_pos) {
@@ -139,8 +137,6 @@ velocity_signaling (LocationObject *obj,
 	g_return_if_fail(vel);
 
 	guint updated_timestamp = 0;
-
-	if (prev_enabled == FALSE) enable_signaling(obj, signals, prev_enabled, enabled, LOCATION_STATUS_NO_FIX);
 
 	if(*prev_vel) {
 		updated_timestamp = (*prev_vel)->updated_timestamp;

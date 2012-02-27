@@ -42,7 +42,7 @@ struct _LocationAddress
 	gchar *street;           ///< Full street name.
 	gchar *district;         ///< Municipal district name.
 	gchar *city;             ///< City name.
-	gchar *state;            ///< State or provinc region of a nation.
+	gchar *state;            ///< State or province region of a nation.
 	gchar *country_code;     ///< Country name.
 	gchar *postal_code;      ///< Postal delivery code.
 };
@@ -59,7 +59,7 @@ GType location_address_get_type(void);
  * @param [in]  street - Full street name.
  * @param [in]  district - Municipal district name.
  * @param [in]  city - City name.
- * @param [in]  state - State or provinc region of a nation.
+ * @param [in]  state - State or province region of a nation.
  * @param [in]  country_code - Country name.
  * @param [in]  postal_code - Postal delivery code.
  * @return a new #LocationAddress

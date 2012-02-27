@@ -27,6 +27,10 @@
 
 G_BEGIN_DECLS
 
+#ifndef LOCATION_DEPRECATED_API
+#define LOCATION_DEPRECATED_API	__attribute__ ((deprecated))
+#endif
+
 /**
  * @file location-types.h
  * @brief This file contains the Location related structure, enumeration, and asynchronous function definitions.
@@ -49,6 +53,7 @@ typedef enum {
 	LOCATION_ERROR_NETWORK_NOT_CONNECTED, ///< Network is not connected.
 	LOCATION_ERROR_CONFIGURATION,  ///< Configuration setting is not correct.
 	LOCATION_ERROR_PARAMETER,      ///< Input parameter is not correct.
+	LOCATION_ERROR_NOT_FOUND,      ///< Output is not found.
 	LOCATION_ERROR_UNKNOWN,        ///< Unknown error.
 } LocationError;
 
@@ -73,6 +78,7 @@ typedef enum {
 	UPDATE_TYPE_NONE = -1,  ///< Undefined update type.
 	POSITION_UPDATED = 0,   ///< This type is used when position information is updated.
 	VELOCITY_UPDATED,       ///< This type is used when velocity information is updated.
+	SATELLITE_UPDATED,      ///< This type is used when satellite information is updated.
 	ADDRESS_UPDATED,        ///< This type is used when address information is updated. This is not implemented yet.
 	GEOCODE_UPDATED,        ///< This type is used when geocode information is updated. This is not implemented yet.
 	REVERSEGEOCODE_UPDATED  ///< This type is used when reverse geocode information is updated. This is not implemented yet.
@@ -89,7 +95,7 @@ typedef GObject LocationObject;
 typedef struct _LocationPosition   LocationPosition;
 
 /**
- * @brief This represents last known position information such as latitude-longitud values and accuracy.
+ * @brief This represents last known position information such as latitude-longitude values and accuracy.
  */
 typedef struct _LocationLastPosition   LocationLastPosition;
 
@@ -109,12 +115,12 @@ typedef struct _LocationAccuracy   LocationAccuracy;
 typedef struct _LocationAddress    LocationAddress;
 
 /**
- * @brief This represents boundary information such as rectagular or circle area.
+ * @brief This represents boundary information such as rectangular or circle area.
  */
 typedef struct _LocationBoundary   LocationBoundary;
 
 /**
- * @brief This represents position information such as number of satelltes in used or in view.
+ * @brief This represents position information such as number of satellites in used or in view.
  */
 typedef struct _LocationSatellite  LocationSatellite;
 
@@ -124,9 +130,9 @@ typedef struct _LocationSatellite  LocationSatellite;
 typedef struct _LocationPOIInfo    LocationPOIInfo;
 
 /**
- * @brief This represents callback function which will be called to give postiion information.
+ * @brief This represents callback function which will be called to give position information.
  */
-typedef void (*LocationPositionCB)(LocationError error, LocationPosition *position, LocationAccuracy *acc, gpointer userdata);
+typedef void (*LocationPositionCB)(LocationError error, GList *position_list, GList *accuracy_list, gpointer userdata);
 
 /**
  * @brief This represents callback function which will be called to give address information.

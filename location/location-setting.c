@@ -97,5 +97,5 @@ gint location_setting_ignore_notify(const gchar* path, SettingCB setting_cb)
 		return -1;
 	}
 	LOCATION_LOGD("vconf notify removed [%s]", path);
-	return -1;
+	return 0;
 }

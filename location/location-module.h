@@ -52,8 +52,8 @@ G_BEGIN_DECLS
  */
 typedef struct{
 	int (*get_service_name)(gpointer handle, gchar **servicename);                                                                         ///< This is used for getting a service name from a plug-in.
-	int (*get_geocode)(gpointer handle, const LocationAddress *address, LocationPosition **position, LocationAccuracy **accuracy);         ///< This is used for getting a geocode from a plug-in.
-	int (*get_geocode_freetext)(gpointer handle, const gchar *address, LocationPosition **position, LocationAccuracy **accuracy);          ///< This is used for getting a geocode by using a free-fromed address from a plug-in.
+	int (*get_geocode)(gpointer handle, const LocationAddress *address, GList **position_list, GList **accuracy_list);         ///< This is used for getting a geocode from a plug-in.
+	int (*get_geocode_freetext)(gpointer handle, const gchar *address, GList **position_list, GList **accuracy_list);          ///< This is used for getting a geocode by using a free-fromed address from a plug-in.
 	int (*get_reverse_geocode)(gpointer handle, const LocationPosition *position, LocationAddress **address, LocationAccuracy **accuracy); ///< This is used for getting a reverse geocode from a plug-in.
 	int (*get_geocode_async)(gpointer handle, const LocationAddress *address, LocationPositionCB callback, gpointer userdata);             ///< This is used for getting a geocode from a plug-in asynchronously.
 	int (*get_geocode_freetext_async)(gpointer handle, const gchar *address, LocationPositionCB callback, gpointer userdata);              ///< This is used for getting a geocode by using a free-fromed address from a plug-in asynchronously.
