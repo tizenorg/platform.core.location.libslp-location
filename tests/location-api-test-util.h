@@ -29,7 +29,7 @@ G_BEGIN_DECLS
 
 void json_util_init(const char *file_file);
 char* json_util_result_zone_test(int polygon_index, int marker_index);
-int* json_util_get_marker_name(int polygon_index, int marker_index);
+char* json_util_get_marker_name(int polygon_index, int marker_index);
 int json_util_get_marker_position_count(int polygon_index);
 LocationPosition *json_util_get_marker_position(int polygon_index, int marker_index);
 

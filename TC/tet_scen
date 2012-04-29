@@ -18,6 +18,7 @@ all
 	/unit/utc_location_get_last_velocity
 	/unit/utc_location_get_satellite
 	/unit/utc_location_get_last_satellite
+	/unit/utc_location_search_poi
 	/unit/utc_location_init
 	/unit/utc_location_new
 	/unit/utc_location_start

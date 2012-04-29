@@ -3,7 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Youngae Kang <youngae.kang@samsung.com>, Yunhan Kim <yhan.kim@samsung.com>, Genie kim <daejins.kim@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
 Uploaders: Genie Kim <daejins.kim@samsung.com>
-Build-Depends: debhelper (>= 5), libglib2.0-dev, dlog-dev, libvconf-dev, libvconf-keys-dev, libjson-glib-dev
+Build-Depends: debhelper (>= 5), libglib2.0-dev, libdbus-glib-1-dev, dlog-dev, libvconf-dev, libvconf-keys-dev, libjson-glib-dev, libgconf-dbus-dev
 Standards-Version: 3.7.2
 Homepage: N/A
 

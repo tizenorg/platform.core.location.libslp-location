@@ -15,6 +15,7 @@ utc_location_get_velocity
 utc_location_get_last_velocity
 utc_location_get_satellite
 utc_location_get_last_satellite
+utc_location_search_poi
 utc_location_init
 utc_location_new
 utc_location_start

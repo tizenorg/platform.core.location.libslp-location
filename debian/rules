@@ -61,6 +61,10 @@ clean:
 	rm -rf install_manifest.txt
 	rm -rf *.so
 	rm -f pkgconfig/lbs-location.pc
+	rm -rf location/*.o
+	rm -rf location/*.lo
+	rm -rf location/*.la
+	rm -rf tests/.lib
 
 	for f in `find $(CURDIR)/debian/ -name "*.in"`; do \
 		rm -f $${f%.in}; \

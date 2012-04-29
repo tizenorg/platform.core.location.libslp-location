@@ -1,17 +1,16 @@
+#!/bin/sh
+
 . ./_export_env.sh                              # setting environment variables
 
-echo PATH=$PATH
-echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-echo TET_ROOT=$TET_ROOT
-echo TET_SUITE_ROOT=$TET_SUITE_ROOT
-echo ARCH=$ARCH
+export TET_SUITE_ROOT=`pwd`
+FILE_NAME_EXTENSION=`date +%s`
 
-RESULT_DIR=results-$ARCH
+RESULT_DIR=results
 HTML_RESULT=$RESULT_DIR/build-tar-result-$FILE_NAME_EXTENSION.html
 JOURNAL_RESULT=$RESULT_DIR/build-tar-result-$FILE_NAME_EXTENSION.journal
 
 mkdir -p $RESULT_DIR
 
-tcc -c -p ./                                # executing tcc, with clean option (-c)
-tcc -b -j $JOURNAL_RESULT -p ./            # executing tcc to build test cases (-b)
-grw -c 3 -f chtml -o $HTML_RESULT $JOURNAL_RESULT  # reporting the result
+tcc -c -p ./
+tcc -b -j $JOURNAL_RESULT -p ./
+grw -c 7 -f chtml -o $HTML_RESULT $JOURNAL_RESULT

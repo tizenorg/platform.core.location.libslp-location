@@ -3,46 +3,42 @@
 #setting 
 if [ "${USER}" = "root" ]
 then
-vconftool set -t int db/location/lastposition/gps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/gps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/HorAccuracy "0.0" -f
-vconftool set -t double db/location/lastposition/gps/VerAccuracy "0.0" -f
-vconftool set -t int db/location/lastposition/wps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/wps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/HorAccuracy "0.0" -f
-vconftool set -t int db/location/lastposition/sps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/sps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/HorAccuracy "0.0" -f
-vconftool set -t double db/location/lastposition/sps/VerAccuracy "0.0" -f
+vconftool set -t int db/location/last/gps/Timestamp "0" -f
+vconftool set -t double db/location/last/gps/Latitude "0.0" -f
+vconftool set -t double db/location/last/gps/Longitude "0.0" -f
+vconftool set -t double db/location/last/gps/Altitude "0.0" -f
+vconftool set -t double db/location/last/gps/HorAccuracy "0.0" -f
+vconftool set -t double db/location/last/gps/VerAccuracy "0.0" -f
+vconftool set -t double db/location/last/gps/Speed "0.0" -f
+vconftool set -t double db/location/last/gps/Direction "0.0" -f
+vconftool set -t int db/location/last/wps/Timestamp "0" -f
+vconftool set -t double db/location/last/wps/Latitude "0.0" -f
+vconftool set -t double db/location/last/wps/Longitude "0.0" -f
+vconftool set -t double db/location/last/wps/Altitude "0.0" -f
+vconftool set -t double db/location/last/wps/HorAccuracy "0.0" -f
+vconftool set -t double db/location/last/wps/Speed "0.0" -f
+vconftool set -t double db/location/last/wps/Direction "0.0" -f
 vconftool set -t int db/location/setting/GpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/AgpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/NetworkEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/SensorEnabled "0" -g 6514 -f
 else
 
-vconftool set -t int db/location/lastposition/gps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/gps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/gps/HorAccuracy "0.0" -f
-vconftool set -t double db/location/lastposition/gps/VerAccuracy "0.0" -f
-vconftool set -t int db/location/lastposition/wps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/wps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/wps/HorAccuracy "0.0" -f
-vconftool set -t int db/location/lastposition/sps/Timestamp "0" -f
-vconftool set -t double db/location/lastposition/sps/Latitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/Longitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/Altitude "0.0" -f
-vconftool set -t double db/location/lastposition/sps/HorAccuracy "0.0" -f
-vconftool set -t double db/location/lastposition/sps/VerAccuracy "0.0" -f
+vconftool set -t int db/location/last/gps/Timestamp "0" -f
+vconftool set -t double db/location/last/gps/Latitude "0.0" -f
+vconftool set -t double db/location/last/gps/Longitude "0.0" -f
+vconftool set -t double db/location/last/gps/Altitude "0.0" -f
+vconftool set -t double db/location/last/gps/HorAccuracy "0.0" -f
+vconftool set -t double db/location/last/gps/VerAccuracy "0.0" -f
+vconftool set -t double db/location/last/gps/Speed "0.0" -f
+vconftool set -t double db/location/last/gps/Direction "0.0" -f
+vconftool set -t int db/location/last/wps/Timestamp "0" -f
+vconftool set -t double db/location/last/wps/Latitude "0.0" -f
+vconftool set -t double db/location/last/wps/Longitude "0.0" -f
+vconftool set -t double db/location/last/wps/Altitude "0.0" -f
+vconftool set -t double db/location/last/wps/HorAccuracy "0.0" -f
+vconftool set -t double db/location/last/wps/Speed "0.0" -f
+vconftool set -t double db/location/last/wps/Direction "0.0" -f
 vconftool set -t int db/location/setting/GpsEnabled "0" -g -f
 vconftool set -t int db/location/setting/AgpsEnabled "0" -f
 vconftool set -t int db/location/setting/NetworkEnabled "0" -f

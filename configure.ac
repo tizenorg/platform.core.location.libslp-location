@@ -4,7 +4,7 @@ AC_INIT(Location, 0.1, [sena06.kim@samsung.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
-AC_CONFIG_SRCDIR([location/location.c])
+AC_CONFIG_SRCDIR([location])
 AM_INIT_AUTOMAKE([1.10.2 foreign -Wall -Werror])
 
 # Check programs for making executable
@@ -50,7 +50,7 @@ AC_COMPILE_IFELSE(
 AC_MSG_RESULT($has_visibility)
 
 # Check dependencies
-PKG_CHECK_MODULES(LOCATION, [glib-2.0 gobject-2.0 gmodule-2.0 vconf])
+PKG_CHECK_MODULES(LOCATION, [glib-2.0 gobject-2.0 dbus-glib-1 gmodule-2.0 vconf])
 AC_SUBST(LOCATION_LIBS)
 AC_SUBST(LOCATION_CFLAGS)
 
@@ -81,6 +81,9 @@ AC_CONFIG_FILES([
 location.pc
 Makefile
 location/Makefile
+location/manager/Makefile
+location/map-service/Makefile
+location/module/Makefile
 tests/Makefile
 ])
 

@@ -20,7 +20,7 @@
  */
 
 #include <glib.h>
-#include <location/location.h>
+#include <location.h>
 
 int
 main (int argc, char *argv[])

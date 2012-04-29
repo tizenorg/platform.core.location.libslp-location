@@ -1,18 +1,92 @@
+libslp-location (0.3.34-13) unstable; urgency=low
+
+  * The result was wrong when location_boundary_if_inside was called
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-13
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 02 Apr 2012 16:59:08 +0900
+
+libslp-location (0.3.34-12) unstable; urgency=low
+
+  * Fix the bug that get_last_position of WPS was failed on emulator.
+  * Move the fuctionality to location module
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-12
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Tue, 27 Mar 2012 11:09:07 +0900
+
+libslp-location (0.3.34-11) unstable; urgency=low
+
+  * Add location_route_step_set_transport_mode / location_route_step_get_transport_mode
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-11
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 26 Mar 2012 17:00:48 +0900
+
+libslp-location (0.3.34-10) unstable; urgency=low
+
+  * Check param's range in funcs.
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-10
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Thu, 22 Mar 2012 13:18:42 +0900
+
+libslp-location (0.3.34-9) unstable; urgency=low
+
+  * Fix the bug that location_get_map_service_pref returned fail
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-9
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Tue, 20 Mar 2012 22:15:17 +0900
+
+libslp-location (0.3.34-8) unstable; urgency=low
+
+  * modity TC script and copy satellite info with timestamp
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-8
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Mon, 19 Mar 2012 20:49:24 +0900
+
+libslp-location (0.3.34-7) unstable; urgency=low
+
+  * add libgconf-dbus-dev in control
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-7
+
+ -- Genie Kim <daejins.kim@samsung.com>  Fri, 16 Mar 2012 11:33:54 +0900
+
+libslp-location (0.3.34-6) unstable; urgency=low
+
+  * Support Capability APIs
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-6
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Wed, 14 Mar 2012 20:35:31 +0900
+
+libslp-location (0.3.34-5) unstable; urgency=low
+
+  * Add dbus_g_thread_init & g_thread_init to location_init
+  * Git: pkgs/l/libslp-location
+  * Tag: libslp-location_0.3.34-5
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Fri, 09 Mar 2012 16:29:07 +0900
+
 libslp-location (0.3.34-4) unstable; urgency=low
 
-  * Rollback
+  * Change a wps_start to support an emulator.
   * Git: pkgs/l/libslp-location
   * Tag: libslp-location_0.3.34-4
 
- -- Minjune Kim <sena06.kim@samsung.com>  Thu, 23 Feb 2012 14:30:58 +0900
+ -- Minjune Kim <sena06.kim@samsung.com>  Wed, 07 Mar 2012 10:59:54 +0900
 
 libslp-location (0.3.34-3) unstable; urgency=low
 
   * Add POI func & Route prototype
+  * Implement get_last_xxx & Update satellite info
   * Git: pkgs/l/libslp-location
   * Tag: libslp-location_0.3.34-3
 
- -- root <sena06.kim@samsung.com>  Thu, 23 Feb 2012 14:29:51 +0900
+ -- Minjune Kim <sena06.kim@samsung.com>  Thu, 23 Feb 2012 14:29:51 +0900
 
 libslp-location (0.3.34-2) unstable; urgency=low
 

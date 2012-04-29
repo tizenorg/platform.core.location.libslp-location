@@ -23,17 +23,14 @@
 #include <string.h>
 #include <glib/gprintf.h>
 #include <gconf/gconf-client.h>
-#include <location/location.h>
+#include <location.h>
+#include <location-map-service.h>
+#include <location-poi.h>
 #include "location-api-test-util.h"
 
 #define STR_MAX	128
 LocationObject* location_obj = NULL;
 static GMainLoop *g_mainloop = NULL;
-
-#define GCONF_PROXY_MODE            "/system/proxy/mode"
-#define GCONF_HTTP_PROXY_HOST       "/system/http_proxy/host"
-#define GCONF_HTTP_PROXY_PORT       "/system/http_proxy/port"
-#define ENV_HTTP_PROXY              "http_proxy"
 
 #define LOCATION_API_TEST_JSON_FILE "/opt/data/location-api-test.json"
 
@@ -378,24 +375,222 @@ cb_service_updated (GObject *self,
 	LocationAccuracy *acc = (LocationAccuracy*) accuracy;
 	switch (type) {
 	case POSITION_UPDATED: {
-			LocationPosition *pos = (LocationPosition*) data;
-			g_debug ("ASYNC>> Current position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
+		LocationPosition *pos = (LocationPosition*) data;
+		g_debug ("ASYNC>> Current position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
 				pos->timestamp, pos->latitude, pos->longitude, pos->altitude, pos->status);
-			g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
 				acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		}
+	}
 		break;
 	case VELOCITY_UPDATED: {
-			LocationVelocity *vel = (LocationVelocity*) data;
-			g_debug ("ASYNC>> Current velocity> time: %d, speed: %f, direction:%f, climb:%f",
-				vel->timestamp, vel->speed, vel->direction, vel->climb);
-			g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
-				acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+		LocationVelocity *vel = (LocationVelocity*) data;
+		g_debug ("ASYNC>> Current velocity> time: %d, speed: %f, direction:%f, climb:%f",
+			vel->timestamp, vel->speed, vel->direction, vel->climb);
+		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
+			acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
+	}
+		break;
+	case SATELLITE_UPDATED: {
+		int idx = 0;
+		guint prn;
+		gboolean used;
+		guint elevation;
+		guint azimuth;
+		gint snr;
+
+		LocationSatellite *sat = (LocationSatellite *)data;
+		g_debug ("SYNC>> Current Satellite> time: %d, satellite in view = %d, satellite in used = %d", sat->timestamp, sat->num_of_sat_inview, sat->num_of_sat_used);
+		g_debug ("\tinview satellite information = ");
+		for (idx=0; idx<sat->num_of_sat_inview; idx++) {
+			location_satellite_get_satellite_details(sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+			g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
 		}
+	}
 		break;
 	default:
 		g_warning ("ASYNC>> Undefined update type");
 		break;
+	}
+}
+
+static void _print_property (gpointer data, gpointer user_data)
+{
+	LocationLandmark *landmark = (LocationLandmark *)user_data;
+	gpointer key = (gpointer)data;
+	gpointer value = NULL;
+
+	if (key) {
+		value = (gpointer)location_landmark_get_property(landmark, key);
+		g_printf(", [%s:%s]", (gchar*) key, (gchar*) value);
+	}
+}
+
+static void
+__plugin_print_poi_list (gpointer data, gpointer user_data)
+{
+	LocationLandmark *landmark = (LocationLandmark *)data;
+	LocationPosition *pos = location_landmark_get_position (landmark);
+	LocationAddress *addr = location_landmark_get_address (landmark);
+
+	g_printf ("[ID:%d], [NAME:%s], phone[%s],pos[%f:%f], addr[%s:%s:%s:%s:%s]",
+			location_landmark_get_id (landmark),
+			location_landmark_get_name(landmark),
+			location_landmark_get_phone_number (landmark),
+			pos->latitude, pos->longitude,
+			addr->building_number, addr->city, addr->country_code, addr->district,
+			addr->postal_code);
+
+	GList *key_list = location_landmark_get_property_key(landmark);
+	if (key_list) {
+		g_list_foreach(key_list, _print_property, landmark);
+	}
+
+	g_printf("\n");
+}
+
+
+static void cb_poi(LocationError error, guint req_id, GList * landmark_list, gchar * error_code, gchar * error_msg, gpointer userdata)
+{
+	g_printf("\n===== __location_POI_cb ======\n");
+	if (error != LOCATION_ERROR_NONE) {
+		g_printf("Failed :%d\n", error);
+		return;
+	}
+	g_printf("Success, poi_list[0x%x] user_data[0x%x] req_id[%d]\n", (unsigned int)landmark_list, (unsigned int)userdata, req_id);
+	g_list_foreach (landmark_list, __plugin_print_poi_list, NULL);
+
+	if (error_code && error_msg) {
+		g_printf("__location_POI_cb: error_code[%s], error_msg[%s]\n", error_code, error_msg);
+	}
+}
+static void PrintStepInfo(const LocationRouteStep *step)
+{
+	const LocationPosition *start = location_route_step_get_start_point(step);
+	gdouble start_lat = 0;
+	gdouble start_lon = 0;
+	if (start) {
+		start_lat = start->latitude;
+		start_lon = start->longitude;
+	} else {
+		g_printf("Step start position NULL\n");
+	}
+	const LocationPosition *end = location_route_step_get_end_point(step);
+	gdouble end_lat = 0;
+	gdouble end_lon = 0;
+	if (end) {
+		end_lat = end->latitude;
+		end_lon = end->longitude;
+	} else {
+		g_printf("Step end position NULL\n");
+	}
+	const gchar *inst = location_route_step_get_instruction(step);
+
+	g_printf("Step: start(%f/%f), end(%f/%f), instruction(%s)\n", start_lat, start_lon, end_lat, end_lon, inst);
+}
+
+static void cb_print_route_step (gpointer data, gpointer user_data)
+{
+	g_printf("+++Step begin\n");
+	LocationRouteStep *step = (LocationRouteStep *)data;
+
+	PrintStepInfo(step);
+	g_printf("---Step end\n");
+}
+
+static void cb_print_route_segment (gpointer data, gpointer user_data)
+{
+	g_printf("++Segment begin\n");
+	LocationRouteSegment *seg = (LocationRouteSegment *)data;
+	gdouble seg_dist = location_route_segment_get_distance(seg);
+	glong seg_duration = location_route_segment_get_duration(seg);
+	const LocationPosition *start = location_route_segment_get_start_point(seg);
+	gdouble start_lat = 0;
+	gdouble start_lon = 0;
+	if (start) {
+		start_lat = start->latitude;
+		start_lon = start->longitude;
+	} else {
+		g_printf("Segment start position NULL\n");
+	}
+	const LocationPosition *end = location_route_segment_get_end_point(seg);
+	gdouble end_lat = 0;
+	gdouble end_lon = 0;
+	if (end) {
+		end_lat = end->latitude;
+		end_lon = end->longitude;
+	} else {
+		g_printf("Segment end postion NULL\n");
+	}
+	g_printf("Segment info: Distance[%f], Duration[%ld], start(%f/%f), end(%f/%f)\n", seg_dist, seg_duration,
+			start_lat, start_lon, end_lat, end_lon);
+
+	GList *step_list = location_route_segment_get_route_step(seg);
+	GList *tmp_list = (GList *)step_list;
+	if (tmp_list) {
+		g_list_foreach(tmp_list, cb_print_route_step, NULL);
+	}
+	g_printf("--Segment end\n");
+}
+
+
+static void cb_print_route_list (gpointer data, gpointer user_data)
+{
+	g_printf("+Route begin\n");
+	LocationRoute *route = (LocationRoute *)data;
+
+	const LocationPosition *start = location_route_get_origin(route);
+	gdouble start_lat = 0;
+	gdouble start_lon = 0;
+	if (start) {
+		start_lat = start->latitude;
+		start_lon = start->longitude;
+	} else {
+		g_printf("Route start position NULL\n");
+	}
+	const LocationPosition *end = location_route_get_destination(route);
+	gdouble end_lat = 0;
+	gdouble end_lon = 0;
+	if (end) {
+		end_lat = end->latitude;
+		end_lon = end->longitude;
+	} else {
+		g_printf("Route end position NULL\n");
+	}
+	g_printf("Route: start(%f/%f), end(%f/%f)\n", start_lat, start_lon, end_lat, end_lon);
+
+	gdouble distance = location_route_get_total_distance(route);
+	const gchar *dis_unit = location_route_get_distance_unit(route);
+	glong duration = location_route_get_total_duration(route);
+	const LocationBoundary *bound = location_route_get_bounding_box(route);
+	if (bound && bound->type == LOCATION_BOUNDARY_RECT) {
+		g_printf("RECT left top[%f-%f], right bottom[%f-%f]\n", bound->rect.left_top->latitude, bound->rect.left_top->longitude,
+			bound->rect.right_bottom->latitude, bound->rect.right_bottom->longitude);
+	} else {
+		g_printf("route boundary not exist, or not RECT\n");
+	}
+	g_printf ("Distance[%f], Distance unit[%s], Duration[%ld]\n", distance, dis_unit, duration);
+
+	GList *seg_list = location_route_get_route_segment(route);
+	if (seg_list) {
+		g_list_foreach(seg_list, cb_print_route_segment, NULL);
+	}
+
+	g_printf("-Route end\n");
+}
+
+static void cb_route(LocationError error, guint req_id, GList * route_list, gchar * error_code, gchar * error_msg, gpointer userdata)
+{
+	g_printf("\n===== cb_route ======\n");
+	if (error != LOCATION_ERROR_NONE) {
+		g_printf("Failed :%d\n", error);
+		return;
+	}
+
+	g_printf("Success, poi_list[0x%x] user_data[0x%x] req_id[%d]\n", (unsigned int)route_list, (unsigned int)userdata, req_id);
+	g_list_foreach (route_list, cb_print_route_list, NULL);
+
+	if (error_code && error_msg) {
+		g_printf("cb_route: error_code[%s], error_msg[%s]\n", error_code, error_msg);
 	}
 }
 
@@ -483,6 +678,24 @@ static gboolean idle_address_from_position_async(gpointer data)
 	return FALSE;
 }
 
+void _print_keys(gpointer value)
+{
+	g_printf(" %s ", (gchar*) value);
+}
+
+static void print_map_service_keys (LocationObject *obj, int type)
+{
+	GList *key = NULL;
+
+	int ret = location_get_map_provider_capability_key (obj, type, &key);
+
+	if (key) {
+		g_list_foreach (key, _print_keys, NULL);
+	}
+
+	g_list_free_full(key, g_free);
+}
+
 static void print_menu()
 {
 	g_printf("\n================================= Location API Test =================================\n");
@@ -510,6 +723,16 @@ static void print_menu()
 	g_printf("13.  location_get_distance\n");
 	g_printf("14.  location_is_supported_method\n");
 	g_printf("15.  location_is_enabled_gps\n");
+	g_printf("16.  location_search_poi\n");
+	g_printf("16a. location_search_poi_by_area\n");
+	g_printf("16b. location_search_poi_by_addr\n");
+	g_printf("16c. location_search_poi_by_freeformed_address\n");
+	g_printf("16d. location_search_poi_by_area\n");
+	g_printf("16e. location_cancel_poi_request\n");
+	g_printf("17.  location_request_route\n");
+	g_printf("17a. location_cancel_route_request\n");
+	g_printf("18.  location_is_supported_map_provider_capability\n");
+	g_printf("19.  location_get_map_provider_capability_key\n");
 	g_printf("99.  location_send_command\n");
 	g_printf("a?.  signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
 	g_printf("b?.  disconnect signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
@@ -525,6 +748,7 @@ int main(int argc, char** argv)
 	int ret;
 	char str[STR_MAX];
 	GError *gerr = NULL;
+	guint req_id = 0;
 
 	// If application is executed by AUL, this is not needed.
 	g_setenv("PKG_NAME", "com.samsung.location-api-test", 1);
@@ -602,14 +826,12 @@ int main(int argc, char** argv)
 			if(pos) location_position_free(pos);
 			if(acc) location_accuracy_free(acc);
 		} else if (0 == g_strcmp0("6a",strOpt)) {
-			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_SPS[5]\n");
-			g_printf("Select Location Method: ");
-			LocationMethod method = PromptInt();
 			LocationPosition *last_pos;
 			LocationAccuracy *last_acc;
 			int ret = 0;
 
-			ret = location_get_last_position (location_obj, LOCATION_METHOD_GPS, &last_pos, &last_acc);
+			ret = location_get_last_position (location_obj, &last_pos, &last_acc);
+			GetLocationError(str, ret);
 			if (ret == LOCATION_ERROR_NONE) {
 				g_debug ("SYNC>> Last position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
 					last_pos->timestamp, last_pos->latitude, last_pos->longitude, last_pos->altitude, last_pos->status);
@@ -617,7 +839,7 @@ int main(int argc, char** argv)
 					last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
 				location_position_free(last_pos);
 				location_accuracy_free(last_acc);
-			} else g_warning ("SYNC>> Last position> failed. Error[%d]",ret);
+			} else g_warning ("SYNC>> Last position> failed. Error[%s]",str);
 
 		} else if (0 == g_strcmp0("6b",strOpt)) {
 			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_SPS[5]\n");
@@ -684,7 +906,7 @@ int main(int argc, char** argv)
 			g_printf("Select Address: ");
 			int opt = PromptInt();
 			if (opt == 0)      data->addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-			else if (opt == 1) data->addr = location_address_new (NULL, "삼성전자", "매탄3동", "수원시 영통구", "경기도", NULL, NULL);
+			else if (opt == 1) data->addr = location_address_new (NULL, "삼성전자", "매탄3동", "수원시 영통구", "경기도",  NULL, NULL);
 			else if (opt == 2) data->addr = location_address_new (NULL, "Samsung Electro-Mechanics Co. LTD", "Maetan 3-dong", "Suwon Si Yeongtong-gu", "Gyeonggi-do", NULL, NULL);
 			else {
 				char building_number[255], street[255], state[255], country_code[255], city[255], district[255], postal_code[255];
@@ -768,26 +990,31 @@ int main(int argc, char** argv)
 			LocationVelocity *vel = NULL;
 			LocationAccuracy *acc = NULL;
 			ret = location_get_velocity(location_obj, &vel, &acc);
-			GetLocationError(str, ret);
 			g_printf("location_get_velocity: returned value [%s]\n", str);
 			if (ret == LOCATION_ERROR_NONE) {
 				g_printf("time: [%d], speed: [%f], direction: [%f], climb: [%f]\n", vel->timestamp, vel->speed, vel->direction, vel->climb);
 				GetAccuracyLevel(str, acc->level);
 				g_printf("level: [%s], horizontal_accuracy: [%f], vertical_accuracy: [%f]\n", str, acc->horizontal_accuracy, acc->vertical_accuracy);
 			}
+			else {
+				GetLocationError(str, ret);
+				g_warning ("SYNC>> velocity> failed. Error[%s]", str);
+			}
 			if(vel) location_velocity_free(vel);
 			if(acc) location_accuracy_free(acc);
 		}else if(0 == g_strcmp0("9a",strOpt) ){
 			LocationVelocity *last_vel = NULL;
 			LocationAccuracy *last_acc = NULL;
-			if (LOCATION_ERROR_NONE == location_get_last_velocity (location_obj, &last_vel, &last_acc)) {
+			ret = location_get_last_velocity (location_obj, &last_vel, &last_acc);
+			GetLocationError(str, ret);
+			if (ret == LOCATION_ERROR_NONE) {
 				g_debug ("SYNC>> Last velocity> time: %d, speed: %f, direction:%f, climb:%f",
 					last_vel->timestamp, last_vel->speed, last_vel->direction, last_vel->climb);
 				g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)",
 					last_acc->level, last_acc->horizontal_accuracy, last_acc->vertical_accuracy);
 				location_velocity_free(last_vel);
 				location_accuracy_free(last_acc);
-			} else g_warning ("SYNC>> Last velocity> failed.");
+			} else g_warning ("SYNC>> Last velocity> failed. Error[%s]", str);
 		}else if(0 == g_strcmp0("10",strOpt) ){
 			int ret = 0, idx = 0;
 			LocationSatellite *sat = NULL;
@@ -798,15 +1025,16 @@ int main(int argc, char** argv)
 			gint snr;
 
 			ret =  location_get_satellite (location_obj, &sat);
+			GetLocationError(str, ret);
 			if (ret == LOCATION_ERROR_NONE) {
-				g_debug ("SYNC>> Current Sattelite> satellite in view = %d, satellite in used = %d", sat->num_of_sat_inview, sat->num_of_sat_used);
+				g_debug ("SYNC>> Current Sattelite> time = %d, satellite in view = %d, satellite in used = %d", sat->timestamp, sat->num_of_sat_inview, sat->num_of_sat_used);
 				g_debug ("\tinview satellite information = ");
 				for (idx=0; idx<sat->num_of_sat_inview; idx++) {
 					location_satellite_get_satellite_details(sat, idx, &prn, &used, &elevation, &azimuth, &snr);
 					g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
 				}
 				location_satellite_free (sat);
-			} else g_warning ("SYNC>> Current satellite> failed. Error[%d]", ret);
+			} else g_warning ("SYNC>> Current satellite> failed. Error[%s]", str);
 		}else if(0 == g_strcmp0("10a",strOpt) ){
 			int ret = 0, idx = 0;
 			LocationSatellite *last_sat = NULL;
@@ -817,16 +1045,16 @@ int main(int argc, char** argv)
 			gint snr;
 
 			ret = location_get_last_satellite (location_obj, &last_sat);
-
+			GetLocationError(str, ret);
 			if (ret == LOCATION_ERROR_NONE) {
-				g_debug ("SYNC>> Last Sattelite> satellite in view = %d, satellite in used = %d", last_sat->num_of_sat_inview, last_sat->num_of_sat_used);
+				g_debug ("SYNC>> Last Sattelite> time = %d, satellite in view = %d, satellite in used = %d", last_sat->timestamp, last_sat->num_of_sat_inview, last_sat->num_of_sat_used);
 				g_debug ("\tinview satellite information = ");
 				for (idx=0; idx<last_sat->num_of_sat_inview; idx++) {
 					location_satellite_get_satellite_details(last_sat, idx, &prn, &used, &elevation, &azimuth, &snr);
 					g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
 				}
 				location_satellite_free (last_sat);
-			} else g_warning ("SYNC>> Last satellite> failed");
+			} else g_warning ("SYNC>> Last satellite> failed. Error[%s]", str);
 		} else if(0 == g_strcmp0("11",strOpt) ){
 			LocationAddress *addr = NULL;
 			LocationAccuracy *acc = NULL;
@@ -953,6 +1181,238 @@ int main(int argc, char** argv)
 			is_enabled = location_is_enabled_gps(location_obj);
 			if(is_enabled == TRUE) g_printf("GPS is turned on");
 			else g_printf("GPS is turned off");
+		}else if(0 == g_strcmp0("16", strOpt)) {
+			g_printf("location_search_poi\n");
+			//guint req_id = 0;  // move to upper
+
+			LocationPOIFilter *filter = location_poi_filter_new();
+//			gchar *key = g_strdup("KEYWORD");
+//			gchar *value = g_strdup("pizza");
+//			location_poi_filter_set(filter, key, value); // same with Type ?  CATEGORY, KEYWORD, POIName
+			//location_poi_filter_set(filter, "CATEGORY", "restaurant");  // error, const char* can't be free!!!!, 120214
+			location_poi_filter_set(filter, "KEYWORD", "pizza");
+			//location_poi_filter_set(filter, "POIName", "cafe");
+
+			LocationPOIPreference *pref = location_poi_pref_new();
+			location_poi_pref_set_max_result(pref, 2);
+			gchar *item = g_strdup("Distance");
+			location_poi_pref_set_sort_by(pref, item); // can't set const char* directly !!
+			location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_DESC);  //LOCATION_POI_PREF_SO_ASC
+
+			// only the latitude/longitude
+			LocationPosition *position = location_position_new(0, 37.771008, -122.41175, 0, LOCATION_STATUS_2D_FIX);
+
+			ret = location_search_poi(location_obj, filter, position, pref, cb_poi, NULL, &req_id);
+			GetLocationError(str, ret);
+			if(ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search POI. Error[%s]\n", str);
+			} else {
+					g_printf("Seach POI success, req_id %d\n", req_id);
+			}
+//			g_free(item);
+//			g_free(key);
+//			g_free(value);
+			location_poi_filter_free(filter);
+			location_poi_pref_free(pref);
+			location_position_free(position);
+
+		}else if(0 == g_strcmp0("16a", strOpt)) {
+			g_printf("location_search_poi_by_area\n");
+			
+			// only circle supported by decarta
+			LocationPosition *center = location_position_new(0, 37.336723, -121.889555, 0, LOCATION_STATUS_2D_FIX);
+			gdouble radius = 400;
+			LocationBoundary *bound = location_boundary_new_for_circle(center, radius);
+
+			LocationPOIFilter *filter = location_poi_filter_new();
+			gchar *key = g_strdup("KEYWORD");
+			gchar *value = g_strdup("cafe");
+			location_poi_filter_set(filter, key, value); // same with Type ?  CATEGORY, KEYWORD, POIName
+
+			LocationPOIPreference *pref = location_poi_pref_new();
+			location_poi_pref_set_max_result(pref, 2);
+			gchar *item = g_strdup("Distance");
+			location_poi_pref_set_sort_by(pref, item); // can't set const char* directly !!
+			location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);  //LOCATION_POI_PREF_SO_ASC
+
+
+			ret = location_search_poi_by_area(location_obj, filter, bound, pref, cb_poi, NULL, &req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search POI by area. Error[%s]\n", str);
+			} else {
+					g_printf("Seach POI by area sucess, req_id %d\n", req_id);
+			}
+
+			g_free(key);
+			g_free(value);
+			g_free(item);
+			location_position_free(center);
+			location_boundary_free(bound);
+			location_poi_filter_free(filter);
+			location_poi_pref_free(pref);
+		}else if(0 == g_strcmp0("16b", strOpt)) {
+			g_printf("location_search_poi_by_address\n");
+
+			LocationAddress *addr = location_address_new("51", "N SAN PEDRO ST", NULL, "SAN JOSE", "SANTA CLARA", "CA", "95110");
+			//landmark type ?
+			//landmark name ?
+
+			LocationPOIFilter *filter = location_poi_filter_new();
+			gchar *key = g_strdup("KEYWORD");
+			gchar *value = g_strdup("cafe");
+			location_poi_filter_set(filter, key, value); // same with Type ?  CATEGORY, KEYWORD, POIName
+
+			LocationPOIPreference *pref = location_poi_pref_new();
+			location_poi_pref_set_max_result(pref, 10);
+			gchar *item = g_strdup("Distance");
+			location_poi_pref_set_sort_by(pref, item); // can't set const char* directly !!
+			location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);  //LOCATION_POI_PREF_SO_ASC
+
+			ret = location_search_poi_by_address(location_obj, filter, addr, pref, cb_poi, NULL, &req_id);
+			GetLocationError(str, ret);
+			if(ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search POI by address. Error[%s]\n", str);
+			} else {
+					g_printf("Seach POI by address sucess, req_id %d\n", req_id);
+			}
+
+			g_free(key);
+			g_free(value);
+			g_free(item);
+
+			location_address_free(addr);
+			location_poi_filter_free(filter);
+			location_poi_pref_free(pref);
+		}else if(0 == g_strcmp0("16c", strOpt)) {
+			g_printf("location_search_poi_by_freeformed_address\n");
+		
+			gchar *addr = g_strdup("North Second St.");
+
+			LocationPOIFilter *filter = location_poi_filter_new();
+			gchar *key = g_strdup("KEYWORD");
+			gchar *value = g_strdup("restaurant");
+			location_poi_filter_set(filter, key, value); // same with Type ?  CATEGORY, KEYWORD, POIName
+
+			LocationPOIPreference *pref = location_poi_pref_new();
+			location_poi_pref_set_max_result(pref, 10);
+			gchar *item = g_strdup("Distance");
+			location_poi_pref_set_sort_by(pref, item); // can't set const char* directly !!
+			location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);  //LOCATION_POI_PREF_SO_ASC
+			
+			ret = location_search_poi_by_freeformed_address(location_obj, filter, addr, pref, cb_poi, NULL, &req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search POI by address. Error[%s]\n", str);
+			} else {
+					g_printf("Seach POI by address success, req_id %d\n", req_id);
+		}
+
+			g_free(key);
+			g_free(value);
+			g_free(item);
+
+			g_free(addr);
+			location_poi_filter_free(filter);
+			location_poi_pref_free(pref);
+		}else if(0 == g_strcmp0("16d", strOpt)) {
+			gchar value[255] = {0, };
+
+			// only circle supported by decarta
+			LocationPosition *center = location_position_new(0, 37.56693, 126.97819, 0, LOCATION_STATUS_2D_FIX);
+			gdouble radius = 800;
+			LocationBoundary *bound = location_boundary_new_for_circle(center, radius);
+
+			LocationPOIFilter *filter = location_poi_filter_new();
+
+			g_printf("Input keyword :");
+			scanf("%s", value);
+			gchar *key = g_strdup("KEYWORD");
+			location_poi_filter_set(filter, key, value); // same with Type ?  CATEGORY, KEYWORD, POIName
+
+			LocationPOIPreference *pref = location_poi_pref_new();
+			location_poi_pref_set_max_result(pref, 2);
+			gchar *item = g_strdup("Distance");
+			location_poi_pref_set_sort_by(pref, item); // can't set const char* directly !!
+			location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);  //LOCATION_POI_PREF_SO_ASC
+
+
+			ret = location_search_poi_by_area(location_obj, filter, bound, pref, cb_poi, NULL, &req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search POI by area. Error[%s]\n", str);
+			} else {
+					g_printf("Seach POI by area sucess, req_id %d\n", req_id);
+			}
+
+			g_free(key);
+			g_free(value);
+			g_free(item);
+			location_position_free(center);
+			location_boundary_free(bound);
+			location_poi_filter_free(filter);
+			location_poi_pref_free(pref);
+		}else if(0 == g_strcmp0("16e", strOpt)) {
+			int req_id;
+
+			g_printf("Input ReqID : ");
+			scanf("%d", &req_id);
+
+			ret = location_cancel_poi_request(location_obj, req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+				g_printf("Fail to cancel POI request. Error[%s]\n", str);
+			}
+			else
+				g_printf("location_cancel_poi_request, req_id %d\n", req_id);
+		}else if(0 == g_strcmp0("17", strOpt)) {
+			g_printf("17.  location_request_route\n\n");
+
+			LocationPosition *origin = location_position_new(0, 37.564263, 126.974676, 0, LOCATION_STATUS_2D_FIX);	// Seoul city hall
+			LocationPosition *destination = location_position_new(0, 37.557120, 126.992410, 0, LOCATION_STATUS_2D_FIX);	// NamSan
+
+			GList *waypoint = NULL;
+			LocationPosition *via_pos = location_position_new(0, 37.560950, 126.986240, 0, LOCATION_STATUS_2D_FIX); // Wangsimli
+			waypoint = g_list_append (waypoint, (gpointer)via_pos);
+
+			LocationRoutePreference *pref = location_route_pref_new();
+			location_route_pref_set_route_type(pref, "FASTEST");
+
+			ret = location_request_route(location_obj, origin, destination, waypoint, pref, cb_route, NULL, &req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+					g_printf("Fail to search route by address. Error[%s]\n", str);
+			} else {
+					g_printf("Search Route successfully, req_id %d\n", req_id);
+			}
+		}else if(0 == g_strcmp0("17a", strOpt)) {
+			g_printf("17a.  location_cancel_route_request\n");
+
+			int req_id;
+			g_printf("Input ReqID : ");
+			scanf("%d", &req_id);
+
+			ret = location_cancel_route_request(location_obj, req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+				g_printf("Fail to cancel route request. Error[%s]\n", str);
+			}
+			else {
+				g_printf("location_cancel_route_request, req_id %d\n", req_id);
+			}
+
+		}else if (0 == g_strcmp0 ("18", strOpt)) {
+			int idx = 0;
+			for (idx = 0; idx < MAP_SERVICE_TYPE_MAX; idx++) {
+				g_printf("[%d:%d], ", idx, location_is_supported_map_provider_capability (location_obj, idx));
+			}
+		}else if (0 == g_strcmp0 ("19", strOpt)) {
+			int idx = 0;
+			for (idx = 0; idx < MAP_SERVICE_TYPE_MAX; idx++) {
+				g_printf("[%d:", idx);
+				print_map_service_keys(location_obj, idx);
+				g_printf("]\n");
+			}
 		}else if(0 == g_strcmp0("99", strOpt)) {
 			int ret = 0;
 			const *str = "command";

@@ -20,7 +20,10 @@ LDADD = \
 		$(dir_location)/libSLP-location.la\
 		$(TEST_LIBS)
 AM_CFLAGS = \
-			-I$(dir_location)\
+			-I$(dir_location) \
+			-I$(dir_location)/include \
+			-I$(dir_location)/manager \
+			-I$(dir_location)/map-service \
 			$(TEST_CFLAGS)
 
 dir_tests = $(top_srcdir)/tests

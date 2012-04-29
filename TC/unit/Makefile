@@ -31,6 +31,7 @@ TC24 = utc_location_get_address
 TC25 = utc_location_get_address_from_position
 TC26 = utc_location_get_position_from_address
 TC27 = utc_location_get_position_from_freeformed_address
+TC28 = utc_location_search_poi
 
 #
 # add your Package Config Info Here
@@ -61,7 +62,7 @@ CFLAGS += $(INCS)
 #
 # e.g.,
 #
-TCLIST = $(TC1) $(TC2) $(TC3) $(TC4) $(TC5) $(TC6) $(TC7) $(TC8) $(TC9) $(TC10) $(TC11) $(TC12) $(TC13) $(TC14) $(TC16) $(TC17) $(TC18) $(TC19) $(TC20) $(TC21) $(TC22) $(TC23) $(TC24) $(TC25) $(TC26) $(TC27)
+TCLIST = $(TC1) $(TC2) $(TC3) $(TC4) $(TC5) $(TC6) $(TC7) $(TC8) $(TC9) $(TC10) $(TC11) $(TC12) $(TC13) $(TC14) $(TC16) $(TC17) $(TC18) $(TC19) $(TC20) $(TC21) $(TC22) $(TC23) $(TC24) $(TC25) $(TC26) $(TC27) $(TC28)
 
 all: $(TCLIST)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<

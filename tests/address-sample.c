@@ -20,14 +20,9 @@
  */
 
 #include <gconf/gconf-client.h>
-#include <location/location.h>
+#include <location.h>
 
 static GMainLoop *loop = NULL;
-
-#define GCONF_PROXY_MODE            "/system/proxy/mode"
-#define GCONF_HTTP_PROXY_HOST       "/system/http_proxy/host"
-#define GCONF_HTTP_PROXY_PORT       "/system/http_proxy/port"
-#define ENV_HTTP_PROXY              "http_proxy"
 
 static gboolean
 exit_program (gpointer data)

@@ -20,7 +20,7 @@
  */
 
 #include <glib.h>
-#include <location/location.h>
+#include <location.h>
 
 static GMainLoop *loop = NULL;
 GSource* sat_src = NULL;
