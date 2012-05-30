@@ -6,6 +6,7 @@ Release:    2
 Group:      System/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: packaging/libslp-location.manifest 
 Requires(post):  /sbin/ldconfig
 Requires(post):  /usr/bin/vconftool
 Requires(postun):  /sbin/ldconfig
@@ -36,6 +37,7 @@ Location Based Service Development Package
 
 
 %build
+cp %{SOURCE1001} .
 
 ./autogen.sh
 ./configure --prefix=%{_prefix} --enable-dlog --enable-debug
@@ -86,9 +88,11 @@ vconftool set -t int db/location/setting/SensorEnabled "0" -g 6514 -f
 
 
 %files
+%manifest libslp-location.manifest
 %{_libdir}/lib*.so*
 
 
 %files devel
+%manifest libslp-location.manifest
 %{_includedir}/location/*.h
 %{_libdir}/pkgconfig/*.pc
