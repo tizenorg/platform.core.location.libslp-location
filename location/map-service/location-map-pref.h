@@ -19,15 +19,15 @@
  * limitations under the License.
  */
 
-#ifndef __LOCATION_PREF_H__
-#define __LOCATION_PREF_H__
+#ifndef __LOCATION_MAP_PREF_H__
+#define __LOCATION_MAP_PREF_H__
 
-#include <location-types.h>
+#include <location-map-types.h>
 
 G_BEGIN_DECLS
 
 /**
- * @file location-pref.h
+ * @file location-map-pref.h
  * @brief This file contains the internal definitions and structures related to a service provider.
  * @addtogroup LocationMapService
  * @{
@@ -40,74 +40,72 @@ G_BEGIN_DECLS
 /**
  * @brief Get provider name to be used in the service request
  */
-gchar *location_pref_get_provider_name (const LocationPreference *pref);
+gchar *location_map_pref_get_provider_name (const LocationMapPref *pref);
 
 /**
  * @brief Get language to be used in the service request.
  */
-gchar *location_pref_get_language (const LocationPreference *pref);
+gchar *location_map_pref_get_language (const LocationMapPref *pref);
 
 /**
  * @brief Get country to be used in the service request.
  */
-gchar *location_pref_get_country (const LocationPreference *pref);
-
+gchar *location_map_pref_get_country (const LocationMapPref *pref);
 
 /**
  * @brief Get the preferred length unit to be used in the service request.
  */
-gchar *location_pref_get_distance_unit (const LocationPreference *pref);
+gchar *location_map_pref_get_distance_unit (const LocationMapPref *pref);
 
 /**
  * @brief Get available service of the service provider.
  */
-GList *location_pref_get_property_key (const LocationPreference *pref);
+GList *location_map_pref_get_property_key (const LocationMapPref *pref);
 
 /**
  * @brief Get property to be used in the service request.
  */
-gconstpointer location_pref_get_property (const LocationPreference *pref, gconstpointer key);
+gconstpointer location_map_pref_get_property (const LocationMapPref *pref, gconstpointer key);
 
 /**
  * @brief Set provider's name to be used in the service request.
  */
-gboolean location_pref_set_provider_name (LocationPreference *pref, const gchar *name);
+gboolean location_map_pref_set_provider_name (LocationMapPref *pref, const gchar *name);
 
 /**
  * @brief Set language to be used in the service request.
  */
-gboolean location_pref_set_language (LocationPreference *pref, const gchar *language);
+gboolean location_map_pref_set_language (LocationMapPref *pref, const gchar *language);
 
 /**
  * @brief Set country to be used in the service request.
  */
-gboolean location_pref_set_country (LocationPreference *pref, const gchar *country);
+gboolean location_map_pref_set_country (LocationMapPref *pref, const gchar *country);
 
 /**
  * @brief Get the preferred length unit to be used in the service request.
  */
-gboolean location_pref_set_distance_unit (LocationPreference *pref, const gchar * unit);
+gboolean location_map_pref_set_distance_unit (LocationMapPref *pref, const gchar * unit);
 
 /**
  * @brief Set property to be used in the service request.
  */
-gboolean location_pref_set_property (LocationPreference *pref, gconstpointer key, gconstpointer value);
+gboolean location_map_pref_set_property (LocationMapPref *pref, gconstpointer key, gconstpointer value);
 
 /**
- * @brief Create a new LocationPreference.
+ * @brief Create a new LocationMapPref.
  */
-LocationPreference * location_pref_new (void);
+LocationMapPref * location_map_pref_new (void);
 
 /**
- * @brief Create a new LocationPreference.
+ * @brief Copy a new LocationMapPref.
  */
-LocationPreference * location_pref_copy (LocationPreference *pref);
-
+LocationMapPref * location_map_pref_copy (LocationMapPref *pref);
 
 /**
- * @brief Free a LocationPreference.
+ * @brief Free a LocationMapPref.
  */
-void location_pref_free (LocationPreference * pref);
+void location_map_pref_free (LocationMapPref *pref);
 
 /**
  * @} @}
@@ -115,7 +113,4 @@ void location_pref_free (LocationPreference * pref);
 
 G_END_DECLS
 
-#endif /* __LOCATION_PREF_H__ */
-
-
-
+#endif /* __LOCATION_MAP_PREF_H__ */

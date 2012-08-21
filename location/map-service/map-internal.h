@@ -22,8 +22,8 @@
 #ifndef __MAP_INTERNAL_H__
 #define __MAP_INTERNAL_H__
 
-#include "location-types.h"
-#include "location-ielement.h"
+#include "location-map-types.h"
+#include "location-map-ielement.h"
 
 /**
  * @file map-internal.h
@@ -32,50 +32,50 @@
 
 G_BEGIN_DECLS
 
-int map_service_get_geocode (LocationIElement *self, const LocationAddress *address, GList **position_list, GList **accuracy_list);
+int map_service_get_geocode (LocationMapIElement *self, const LocationAddress *address, const LocationMapPref *svc_pref, GList **position_list, GList **accuracy_list);
 
-int map_service_get_geocode_freeform (LocationIElement *self, const gchar  *address, GList **position_list, GList **accuracy_list);
+int map_service_get_geocode_freeform (LocationMapIElement *self, const gchar  *address, const LocationMapPref *svc_pref, GList **position_list, GList **accuracy_list);
 
-int map_service_get_reversegeocode (LocationIElement *self, const LocationPosition *position, LocationAddress **address, LocationAccuracy **accuracy);
+int map_service_get_reversegeocode (LocationMapIElement *self, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddress **address, LocationAccuracy **accuracy);
 
-int map_service_get_geocode_async (LocationIElement *self, LocationAddress *address, LocationPositionCB callback, gpointer userdata);
+int map_service_get_geocode_async (LocationMapIElement *self, const LocationAddress *address, const LocationMapPref *svc_pref, LocationPositionCB callback, gpointer userdata);
 
-int map_service_get_geocode_freeform_async (LocationIElement *self, const gchar *address, LocationPositionCB callback, gpointer userdata);
+int map_service_get_geocode_freeform_async (LocationMapIElement *self, const gchar *address, const LocationMapPref *svc_pref, LocationPositionCB callback, gpointer userdata);
 
-int map_service_get_reversegeocode_async (LocationIElement *self, const LocationPosition *position, LocationAddressCB callback, gpointer userdata);
+int map_service_get_reversegeocode_async (LocationMapIElement *self, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddressCB callback, gpointer userdata);
 
-int map_service_search_poi (LocationIElement *self,
+int map_service_search_poi (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const LocationPosition *position,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint * req_id);
 
-int map_service_search_poi_by_area (LocationIElement *self,
+int map_service_search_poi_by_area (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const LocationBoundary *boundary,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint * req_id);
 
-int map_service_search_poi_by_address (LocationIElement *self,
+int map_service_search_poi_by_address (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const LocationAddress *address,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint * req_id);
 
-int map_service_search_poi_by_freeform (LocationIElement *self,
+int map_service_search_poi_by_freeform (LocationMapIElement *self,
 		const LocationPOIFilter * filter, const gchar *freeform,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint *req_id);
 
-int map_service_cancel_poi_request (LocationIElement *self, guint req_id);
+int map_service_cancel_poi_request (LocationMapIElement *self, guint req_id);
 
-int map_service_request_route (LocationIElement *self,
+int map_service_request_route (LocationMapIElement *self,
 		const LocationPosition *origin, const LocationPosition *destination, GList *waypoint,
-		const LocationPreference *svc_pref, const LocationRoutePreference *pref,
+		const LocationMapPref *svc_pref, const LocationRoutePreference *pref,
 		LocationRouteCB cb, const gpointer user_data, guint * req_id);
 
-int map_service_cancel_route_request (LocationIElement *self, guint req_id);
+int map_service_cancel_route_request (LocationMapIElement *self, guint req_id);
 
-gboolean map_service_is_supported_map_provider_capability (LocationIElement *self, LocationMapServiceType type);
+gboolean map_service_is_supported_provider_capability (LocationMapIElement *self, LocationMapServiceType type);
 
-int map_service_get_map_provider_capability_key (LocationIElement *self, LocationMapServiceType type, GList **key);
+int map_service_get_provider_capability_key (LocationMapIElement *self, LocationMapServiceType type, GList **key);
 
 G_END_DECLS
 

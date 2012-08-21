@@ -6,7 +6,8 @@ MAP_SERVICE_DIR = map-service
 MODULE_DIR = module
 
 liblocation_map_service_la_SOURCES = \
-							 location-pref.c   \
+							 location-map-pref.c   \
+							 location-map-ielement.c \
 							 location-address.c  \
 							 location-geocode.c \
 							 location-poi.c   \

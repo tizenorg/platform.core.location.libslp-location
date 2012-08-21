@@ -40,12 +40,21 @@ typedef enum {
 
 void enable_signaling (LocationObject *obj,	guint32 signals[LAST_SIGNAL], gboolean *prev_enabled, gboolean enabled, LocationStatus status);
 
-void position_signaling (LocationObject *obj, guint32 signals[LAST_SIGNAL], gboolean *prev_enabled, guint interval, LocationPosition **prev_pos, LocationAccuracy **prev_acc, GList *prev_bound, ZoneStatus *zone_status, gboolean enabled, const LocationPosition *pos, const LocationAccuracy *acc);
+void position_signaling (LocationObject *obj, guint32 signals[LAST_SIGNAL],
+		gboolean *prev_enabled, int interval, gboolean emit,
+		guint *updated_interval, LocationPosition **prev_pos, LocationAccuracy **prev_acc,
+		GList *prev_bound, ZoneStatus *zone_status,
+		const LocationPosition *pos, const LocationAccuracy *acc);
 
-void velocity_signaling (LocationObject* obj, guint32 signals[LAST_SIGNAL], gboolean *prev_enabled, guint interval, LocationVelocity **prev_vel, gboolean enabled, const LocationVelocity *vel, const LocationAccuracy *acc);
+void velocity_signaling (LocationObject* obj, guint32 signals[LAST_SIGNAL],
+		gboolean *prev_enabled, int interval, gboolean emit,
+		guint *updated_timestamp, LocationVelocity **prev_vel,
+		const LocationVelocity *vel, const LocationAccuracy *acc);
 
-void
-satellite_signaling(LocationObject *obj, guint32 signals[LAST_SIGNAL], gboolean *prev_enabled, guint interval, guint *sat_timestamp, LocationSatellite **pre_sat, gboolean enabled, const LocationSatellite *sat);
+void satellite_signaling(LocationObject *obj, guint32 signals[LAST_SIGNAL],
+		gboolean *prev_enabled, int interval, gboolean emit,
+		guint *updated_timestamp, LocationSatellite **pre_sat,
+		const LocationSatellite *sat);
 
 G_END_DECLS
 

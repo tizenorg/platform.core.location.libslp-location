@@ -25,6 +25,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "location-position.h"
 #include "location-setting.h"
@@ -97,8 +98,6 @@ location_position_copy (const LocationPosition *position)
 								position->longitude,
 								position->altitude,
 								position->status);
-
-	if(new_position) new_position->updated_timestamp = position->updated_timestamp;
 
 	return new_position;
 

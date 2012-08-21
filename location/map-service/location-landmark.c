@@ -148,7 +148,7 @@ location_landmark_get_phone_number (const LocationLandmark *landmark)
 {
 	g_return_val_if_fail(landmark, NULL);
 
-	return (const gchar *) landmark->phone_number;
+	return landmark->phone_number;
 }
 
 EXPORT_API GList *

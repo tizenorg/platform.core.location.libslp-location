@@ -25,7 +25,7 @@
 
 #include "location-log.h"
 #include "location-types.h"
-#include "location-pref.h"
+#include "location-map-pref.h"
 
 #include "map-service.h"
 

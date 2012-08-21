@@ -22,7 +22,7 @@
 #ifndef __LOCATION_ROUTE_EXT_H__
 #define __LOCATION_ROUTE_EXT_H__
 
-#include <location-types.h>
+#include <location-map-types.h>
 
 G_BEGIN_DECLS
 
@@ -41,7 +41,8 @@ G_BEGIN_DECLS
 
 /**
  * @brief Set the origin #LocationPosition of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous origin of the #LocationRoute will be removed if an origin is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -54,7 +55,8 @@ gboolean location_route_set_origin (LocationRoute *route, const LocationPosition
 
 /**
  * @brief Set the destication #LocationPosition of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous destination of the #LocationRoute will be removed if an destination is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -67,7 +69,8 @@ gboolean location_route_set_destination (LocationRoute *route, const LocationPos
 
 /**
  * @brief Set the bounding box #LocationBoundary of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous bbox of the #LocationRoute will be removed if an bbox is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -92,7 +95,8 @@ gboolean location_route_set_total_distance (LocationRoute *route, gdouble total_
 
 /**
  * @brief Set the distance unit of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous distance unit of the #LocationRoute will be removed if an distance_unit is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -118,7 +122,8 @@ gboolean location_route_set_total_duration (LocationRoute *route, glong total_du
 
 /**
  * @brief Set the propery value of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous value of the #LocationRoute matching to key will be removed if an value is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -132,7 +137,8 @@ gboolean location_route_set_property (LocationRoute *route, gconstpointer key, g
 
 /**
  * @brief Set the list of segments #LocationRouteSegment of #LocationRoute
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous route segment of the #LocationRoute will be removed if an segment is NULL.
  * @pre None.
  * @post None.
  * @param [in] route - a #LocationRoute
@@ -145,7 +151,8 @@ gboolean location_route_set_route_segment (LocationRoute *route, GList* segment)
 
 /**
  * @brief Set the start point #LocationPosition of #LocationRouteSegment
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous start point of the #LocationRouteSegment will be removed if a start is NULL.
  * @pre None.
  * @post None.
  * @param [in] segment - a #LocationRouteSegment
@@ -158,7 +165,8 @@ gboolean location_route_segment_set_start_point (LocationRouteSegment *segment, 
 
 /**
  * @brief Set the end point #LocationPosition of #LocationRouteSegment
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous end point of the #LocationRouteSegment will be removed if an end is NULL.
  * @pre None.
  * @post None.
  * @param [in] segment - a #LocationRouteSegment
@@ -171,7 +179,8 @@ gboolean location_route_segment_set_end_point (LocationRouteSegment *segment, co
 
 /**
  * @brief Set the bounding box #LocationBoundary of #LocationRouteSegment
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous bbox of the #LocationRouteSegment will be removed if a bbox is NULL.
  * @pre None.
  * @post None.
  * @param [in] segment - a #LocationRouteSegment
@@ -210,7 +219,8 @@ gboolean location_route_segment_set_duration (LocationRouteSegment *segment, glo
 
 /**
  * @brief Set the property value of #LocationRouteSegment
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous value of the LocationRouteSegment matching to key will be removed if a value is NULL.
  * @pre None.
  * @post None.
  * @param [in] segment - a #LocationRouteSegment
@@ -224,7 +234,8 @@ gboolean location_route_segment_set_property (LocationRouteSegment *segment, gco
 
 /**
  * @brief Set the list of route steps #LocationRouteStep in #LocationRouteSegment
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous route step of the #LocationRouteSegment will be removed if a step is NULL.
  * @pre None.
  * @post None.
  * @param [in] segment - a #LocationRouteSegment
@@ -237,7 +248,8 @@ gboolean location_route_segment_set_route_step (LocationRouteSegment *segment, G
 
 /**
  * @brief Set the start point #LocationPosition of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous start point of the #LocationRouteStep will be removed if a start is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -250,7 +262,8 @@ gboolean location_route_step_set_start_point (LocationRouteStep *step, const Loc
 
 /**
  * @brief Set the end point #LocationPosition of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous end point of the #LocationRouteStep will be removed if an end is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -263,7 +276,8 @@ gboolean location_route_step_set_end_point (LocationRouteStep *step, const Locat
 
 /**
  * @brief Set the bounding box #LocationBoundary of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous bbox of the #LocationRouteStep will be removed if a bbox is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -302,7 +316,8 @@ gboolean location_route_step_set_duration (LocationRouteStep *step, glong durati
 
 /**
  * @brief Set the transport mode of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous transport mode of the #LocationRouteStep will be removed if a transport_mode is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -315,7 +330,8 @@ gboolean location_route_step_set_transport_mode (LocationRouteStep *step, const 
 
 /**
  * @brief Set the instruction of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous instruction of the #LocationRouteStep will be removed if an instruction is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -328,7 +344,8 @@ gboolean location_route_step_set_instruction (LocationRouteStep *step, const gch
 
 /**
  * @brief Set the list of geometry #LocationPosition in #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous geometry of the #LocationRouteStep will be removed if a geometry is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep
@@ -341,7 +358,8 @@ gboolean location_route_step_set_geometry (LocationRouteStep *step, GList *geome
 
 /**
  * @brief Set the property value of #LocationRouteStep
- * @remarks The service provider should support route service.
+ * @remarks The service provider should support route service.\n
+ *	The previous value of the #LocationRouteStep will be removed if a value is NULL.
  * @pre None.
  * @post None.
  * @param [in] step - a #LocationRouteStep

@@ -22,7 +22,7 @@
 #ifndef __LOCATION_GEOCODE_H__
 #define __LOCATION_GEOCODE_H__
 
-#include <location-types.h>
+#include <location-map-types.h>
 
 G_BEGIN_DECLS
 

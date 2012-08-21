@@ -24,7 +24,7 @@
 #define __LOCATION_MAP_SERVICE_EXT_H__
 
 
-#include <location-types.h>
+#include <location-map-types.h>
 #include <location-route-ext.h>
 #include <location-landmark-ext.h>
 

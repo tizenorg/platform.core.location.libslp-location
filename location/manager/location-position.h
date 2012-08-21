@@ -62,7 +62,6 @@ typedef enum
 struct _LocationPosition
 {
 	guint timestamp; 	///< Time stamp.
-	guint updated_timestamp; 	///< latest updated time stamp.
 	gdouble latitude; 	///< Latitude data.
 	gdouble longitude;	///< Longitude data.
 	gdouble altitude; 	///< Altitude data.

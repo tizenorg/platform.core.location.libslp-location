@@ -44,7 +44,6 @@ main (int argc, char *argv[])
 
 	LocationAccuracy *acc = NULL;
 	LocationPosition *pos = NULL;
-	LocationAddress *addr = NULL;
 
 	if (LOCATION_ERROR_NONE == location_get_position (loc, &pos, &acc)) {
 		g_debug ("SYNC>> Current position> time: %d, lat: %f, long: %f, alt: %f, status: %d",
@@ -54,13 +53,6 @@ main (int argc, char *argv[])
 		location_position_free(pos);
 		location_accuracy_free(acc);
 	} else g_warning ("SYNC>> Current position> failed");
-	if (LOCATION_ERROR_NONE == location_get_address(loc, &addr, &acc)) {
-		g_debug ("SYNC>> Current address> %s %s %s %s %s %s %s",
-			addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_address_free(addr);
-		location_accuracy_free(acc);
-	} else g_warning ("SYNC>> Current address> failed");
 
 	g_object_get(loc, "last-position", &pos, NULL);
 	if (pos) {

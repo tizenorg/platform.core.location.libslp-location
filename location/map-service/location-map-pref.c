@@ -24,11 +24,11 @@
 #endif
 
 #include <glib.h>
-#include "location-types.h"
+#include "location-map-types.h"
 #include "map-service.h"
-#include "location-pref.h"
+#include "location-map-pref.h"
 
-struct _LocationPreference {
+struct _LocationMapPref {
 	gchar *provider_name;                ///< Name of the service provier
     gchar *language;            ///< Language of the service preference.
     gchar *country;				///< Country of the service preference.
@@ -37,7 +37,7 @@ struct _LocationPreference {
 };
 
 EXPORT_API GList *
-location_pref_get_property_key (const LocationPreference *pref)
+location_map_pref_get_property_key (const LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
@@ -47,7 +47,7 @@ location_pref_get_property_key (const LocationPreference *pref)
 }
 
 EXPORT_API gchar *
-location_pref_get_language (const LocationPreference *pref)
+location_map_pref_get_language (const LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
@@ -55,7 +55,7 @@ location_pref_get_language (const LocationPreference *pref)
 }
 
 EXPORT_API gchar *
-location_pref_get_country (const LocationPreference *pref)
+location_map_pref_get_country (const LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
@@ -63,7 +63,7 @@ location_pref_get_country (const LocationPreference *pref)
 }
 
 EXPORT_API gchar *
-location_pref_get_distance_unit (const LocationPreference *pref)
+location_map_pref_get_distance_unit (const LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
@@ -71,7 +71,7 @@ location_pref_get_distance_unit (const LocationPreference *pref)
 }
 
 EXPORT_API gconstpointer
-location_pref_get_property (const LocationPreference *pref, gconstpointer key)
+location_map_pref_get_property (const LocationMapPref *pref, gconstpointer key)
 {
 	g_return_val_if_fail (pref, NULL);
 	g_return_val_if_fail (key, NULL);
@@ -81,7 +81,7 @@ location_pref_get_property (const LocationPreference *pref, gconstpointer key)
 }
 
 EXPORT_API gchar *
-location_pref_get_provider_name (const LocationPreference *pref)
+location_map_pref_get_provider_name (const LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
@@ -89,7 +89,7 @@ location_pref_get_provider_name (const LocationPreference *pref)
 }
 
 EXPORT_API gboolean
-location_pref_set_provider_name (LocationPreference *pref, const gchar *name)
+location_map_pref_set_provider_name (LocationMapPref *pref, const gchar *name)
 {
 	g_return_val_if_fail (pref, FALSE);
 
@@ -104,7 +104,7 @@ location_pref_set_provider_name (LocationPreference *pref, const gchar *name)
 }
 
 EXPORT_API gboolean
-location_pref_set_language (LocationPreference *pref, const gchar * language)
+location_map_pref_set_language (LocationMapPref *pref, const gchar * language)
 {
 	g_return_val_if_fail (pref, FALSE);
 
@@ -119,7 +119,7 @@ location_pref_set_language (LocationPreference *pref, const gchar * language)
 }
 
 EXPORT_API gboolean
-location_pref_set_country (LocationPreference *pref, const gchar *country)
+location_map_pref_set_country (LocationMapPref *pref, const gchar *country)
 {
 	g_return_val_if_fail (pref, FALSE);
 
@@ -135,7 +135,7 @@ location_pref_set_country (LocationPreference *pref, const gchar *country)
 
 
 EXPORT_API gboolean
-location_pref_set_distance_unit (LocationPreference *pref, const gchar * unit)
+location_map_pref_set_distance_unit (LocationMapPref *pref, const gchar * unit)
 {
 	g_return_val_if_fail (pref, FALSE);
 
@@ -150,7 +150,7 @@ location_pref_set_distance_unit (LocationPreference *pref, const gchar * unit)
 }
 
 EXPORT_API gboolean
-location_pref_set_property (LocationPreference *pref, gconstpointer key, gconstpointer value)
+location_map_pref_set_property (LocationMapPref *pref, gconstpointer key, gconstpointer value)
 {
 	g_return_val_if_fail (pref, FALSE);
 	g_return_val_if_fail (key, FALSE);
@@ -165,10 +165,10 @@ location_pref_set_property (LocationPreference *pref, gconstpointer key, gconstp
 	return TRUE;
 }
 
-EXPORT_API LocationPreference *
-location_pref_new (void)
+EXPORT_API LocationMapPref *
+location_map_pref_new (void)
 {
-	LocationPreference *pref = g_slice_new0(LocationPreference);
+	LocationMapPref *pref = g_slice_new0(LocationMapPref);
 	if (!pref) return NULL;
 
 	pref->properties = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
@@ -189,17 +189,17 @@ static void property_copy (gpointer key, gpointer value, gpointer user_data)
 	g_hash_table_insert (properties, re_key, re_val);
 }
 
-EXPORT_API LocationPreference *
-location_pref_copy (LocationPreference *pref)
+EXPORT_API LocationMapPref *
+location_map_pref_copy (LocationMapPref *pref)
 {
 	g_return_val_if_fail (pref, NULL);
 
-	LocationPreference *new_pref = location_pref_new();
+	LocationMapPref *new_pref = location_map_pref_new();
 	if (!new_pref) return NULL;
 
-	location_pref_set_provider_name (new_pref, location_pref_get_provider_name(pref));
-	location_pref_set_language (new_pref, location_pref_get_language(pref));
-	location_pref_set_distance_unit (new_pref, location_pref_get_distance_unit(pref));
+	location_map_pref_set_provider_name (new_pref, location_map_pref_get_provider_name(pref));
+	location_map_pref_set_language (new_pref, location_map_pref_get_language(pref));
+	location_map_pref_set_distance_unit (new_pref, location_map_pref_get_distance_unit(pref));
 
 
 	g_hash_table_foreach (pref->properties, property_copy, new_pref->properties);
@@ -208,15 +208,15 @@ location_pref_copy (LocationPreference *pref)
 }
 
 EXPORT_API void
-location_pref_free (LocationPreference * pref)
+location_map_pref_free (LocationMapPref * pref)
 {
 	g_return_if_fail(pref);
 
-	location_pref_set_provider_name (pref, NULL);
-	location_pref_set_language (pref, NULL);
-	location_pref_set_distance_unit (pref, NULL);
+	location_map_pref_set_provider_name (pref, NULL);
+	location_map_pref_set_language (pref, NULL);
+	location_map_pref_set_distance_unit (pref, NULL);
 	g_hash_table_destroy (pref->properties);
 
-	g_slice_free (LocationPreference, pref);
+	g_slice_free (LocationMapPref, pref);
 	pref = NULL;
 }

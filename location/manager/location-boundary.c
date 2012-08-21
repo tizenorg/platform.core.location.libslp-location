@@ -104,7 +104,7 @@ location_boundary_new_for_rect (LocationPosition* left_top,
 	gdouble lon_interval = right_bottom->longitude - left_top->longitude;
 
 	if(lon_interval < 180 && lon_interval > -180) {
-		if(right_bottom->longitude <= left_top->longitude || right_bottom->latitude >= left_top->latitude)
+		if(right_bottom->longitude <= left_top->longitude || right_bottom->latitude <= left_top->latitude)
 			return NULL;
 	}
 	else {

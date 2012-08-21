@@ -48,7 +48,6 @@ GType location_velocity_get_type (void);
 struct _LocationVelocity
 {
 	guint timestamp; 		///< Time stamp.
-	guint updated_timestamp; 	///< The latest updated time stamp.
 	gdouble speed; 			///< The speed over ground. (km/h)
 	gdouble direction; 		///< The course made in degrees relative to true north. The value is always in the range [0.0, 360.0] degree.
 	gdouble climb; 			///< The vertical speed. (km/h)

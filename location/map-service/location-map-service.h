@@ -25,10 +25,11 @@
 
 
 #include <glib.h>
-#include <location-types.h>
+#include <location-map-pref.h>
+#include <location-map-types.h>
+#include <location-address.h>
 #include <location-poi.h>
 #include <location-route.h>
-#include <location-pref.h>
 #include <location-landmark.h>
 
 G_BEGIN_DECLS
@@ -47,6 +48,24 @@ G_BEGIN_DECLS
  */
 
 /**
+* @brief
+* Create Map Object.
+* @remarks location_init should be called before.
+* @pre None.
+* @post None.
+* @param [in]
+* provider - map provider. A default provider will be provided if NULL.
+*/
+LocationMapObject *location_map_new (const char *provider);
+
+/**
+* @brief
+* Free Map Object.
+* @remarks location_map_new should be called before.
+*/
+int location_map_free (LocationMapObject *obj);
+
+/**
  * @brief
  * Get current position information with estimate of the accuracy by using given address information.
  * @remarks Out parameters are should be freed.
@@ -55,7 +74,7 @@ G_BEGIN_DECLS
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * address - a #LocationAddress
  * @param [out]
@@ -67,7 +86,7 @@ G_BEGIN_DECLS
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_position_from_address_async\n
+ * location_map_get_position_from_address_async\n
  * @par Example
  * @code
 #include <location.h>
@@ -116,13 +135,13 @@ static void PrintAcc (gpointer data, gpointer user_data)
 
 int main (int argc, char *argv[])
 {
-	LocationObject *loc = NULL;
+	LocationMapObject *loc = NULL;
 	int ret = LOCATION_ERROR_NONE;
 
 	location_init ();
-	loc  = location_new (LOCATION_METHOD_GPS);
+	loc  = location_map_new (NULL);
 	if(!loc){
-		g_debug("location_new failed");
+		g_debug("location_map_new failed");
 		return -1;
 	}
 
@@ -131,7 +150,7 @@ int main (int argc, char *argv[])
 	LocationAddress *addr = NULL;
 
 	addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
-	if (LOCATION_ERROR_NONE == location_get_position_from_address(loc, addr, &pos_list, &acc_list)) {
+	if (LOCATION_ERROR_NONE == location_map_get_position_from_address(loc, addr, &pos_list, &acc_list)) {
 
 	} else g_warning ("SYNC>> position from address> failed");
 	location_address_free (addr);
@@ -139,12 +158,12 @@ int main (int argc, char *argv[])
 	g_list_foreach (acc_list, PrintAcc, NULL);
 	g_list_free (pos_list);
 	g_list_free (acc_list);
-	location_free (loc);
+	location_map_free (loc);
 	return 0;
 }
  * @endcode
  */
-int location_get_position_from_address (LocationObject *obj, const LocationAddress *address, GList **position_list, GList **accuracy_list);
+int location_map_get_position_from_address (LocationMapObject *obj, const LocationAddress *address, GList **position_list, GList **accuracy_list);
 
 /**
  * @brief
@@ -156,7 +175,7 @@ int location_get_position_from_address (LocationObject *obj, const LocationAddre
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * address - a #LocationAddress
  * @param [in]
@@ -168,10 +187,9 @@ int location_get_position_from_address (LocationObject *obj, const LocationAddre
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_position_from_address\n
+ * location_map_get_position_from_address\n
  * @par Example
  * @code
-#include <location.h>
 #include <location-map-service.h>
 
 static void PrintPos (gpointer data, gpointer user_data)
@@ -200,18 +218,18 @@ cb_position_from_address (LocationError error, GList *position_list, GList *accu
 	}
 }
 
-void get_position_from_address(LocationObject* loc)
+void get_position_from_address(LocationMapObject* loc)
 {
 	LocationAddress *addr = location_address_new ("1", "Post Street", NULL, "san jose", "ca", NULL, "95113");
 	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_position_from_address_async(loc, addr, cb_position_from_address, loc))
-		g_debug("location_get_position_from_address_async() success");
-	else g_warning ("location_get_position_from_address_async() failed");
+	if (LOCATION_ERROR_NONE == location_map_get_position_from_address_async(loc, addr, cb_position_from_address, loc))
+		g_debug("location_map_get_position_from_address_async() success");
+	else g_warning ("location_map_get_position_from_address_async() failed");
 	location_address_free (addr);
 }
  * @endcode
  */
-int location_get_position_from_address_async (LocationObject *obj, const LocationAddress *address, LocationPositionCB callback, gpointer userdata);
+int location_map_get_position_from_address_async (LocationMapObject *obj, const LocationAddress *address, LocationPositionCB callback, gpointer userdata);
 
 /**
  * @brief
@@ -222,7 +240,7 @@ int location_get_position_from_address_async (LocationObject *obj, const Locatio
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * address - Free-formed address string to be used
  * @param [out]
@@ -234,7 +252,7 @@ int location_get_position_from_address_async (LocationObject *obj, const Locatio
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_position_from_freeformed_address_async\n
+ * location_map_get_position_from_freeformed_address_async\n
  * @par Example
  * @code
 #include <location.h>
@@ -282,13 +300,13 @@ static void PrintAcc (gpointer data, gpointer user_data)
 
 int main (int argc, char *argv[])
 {
-	LocationObject *loc = NULL;
+	LocationMapObject *loc = NULL;
 	int ret = LOCATION_ERROR_NONE;
 
 	location_init ();
-	loc  = location_new (LOCATION_METHOD_GPS);
+	loc  = location_map_new (NULL);
 	if(!loc){
-		g_debug("location_new failed");
+		g_debug("location_map_new failed");
 		return -1;
 	}
 
@@ -297,7 +315,7 @@ int main (int argc, char *argv[])
 	char* addr_str = g_strdup("4 N 2nd Street 95113");
 
 	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_position_from_freeformed_address(loc, addr_str, &pos_list, &acc_list)) {
+	if (LOCATION_ERROR_NONE == location_map_get_position_from_freeformed_address(loc, addr_str, &pos_list, &acc_list)) {
 		g_list_foreach (pos_list, PrintPos, NULL);
 		g_list_foreach (acc_list, PrintAcc, NULL);
 		g_list_free (pos_list);
@@ -310,7 +328,7 @@ int main (int argc, char *argv[])
 }
  * @endcode
  */
-int location_get_position_from_freeformed_address (LocationObject *obj, const gchar *address, GList **position_list, GList **accuracy_list);
+int location_map_get_position_from_freeformed_address (LocationMapObject *obj, const gchar *address, GList **position_list, GList **accuracy_list);
 
 /**
  * @brief
@@ -322,7 +340,7 @@ int location_get_position_from_freeformed_address (LocationObject *obj, const gc
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * address - Free-formed address string to be used
  * @param [in]
@@ -334,7 +352,7 @@ int location_get_position_from_freeformed_address (LocationObject *obj, const gc
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_position_from_freeformed_address\n
+ * location_map_get_position_from_freeformed_address\n
  * @par Example
  * @code
 #include <location.h>
@@ -367,174 +385,19 @@ cb_position_from_freeformed_address (LocationError error, GList *position_list, 
 	}
 }
 
-void get_position_from_address(LocationObject* loc)
+void get_position_from_address(LocationMapObject* loc)
 {
 	gchar *addr_str = g_strdup("4 N 2nd Street 95113");
 	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_position_from_freeformed_address_async(loc, addr_str, cb_position_from_freeformed_address, loc))
-		g_debug("location_get_position_from_freeformed_address_async() success");
-	else g_warning ("location_get_position_from_freeformed_address_async() failed");
+	if (LOCATION_ERROR_NONE == location_map_get_position_from_freeformed_address_async(loc, addr_str, cb_position_from_freeformed_address, loc))
+		g_debug("location_map_get_position_from_freeformed_address_async() success");
+	else g_warning ("location_map_get_position_from_freeformed_address_async() failed");
 	g_free(addr_str);
 
 }
  * @endcode
  */
-int location_get_position_from_freeformed_address_async (LocationObject *obj, const gchar *address, LocationPositionCB callback,	gpointer userdata);
-
-/**
- * @brief
- * Get current address information with estimate of the accuracy by using current position.
- * @remarks Out parameters are should be freed.
- * @pre
- * #location_init should be called before.\n
- * #location_start should be called before.\n
- * Calling application must have an active data connection.
- * @post None.
- * @param [in]
- * obj - a #LocationObject created by #location_new
- * @param [out]
- * address - a new #LocationAddress
- * @param [out]
- * accuracy - a new #LocationAccuracy
- * @return int
- * @retval 0                              Success
- *
- * Please refer #LocationError for more information.
- * @see
- * location_get_address_async\n
- * @par Example
- * @code
-#include <location.h>
-#include <location-map-service.h>
-static GMainLoop *loop = NULL;
-
-static void cb_service_enabled (GObject *self, guint status, gpointer userdata)
-{
-	g_debug("cb_service_enabled: status(%d) userdata(0x%x)", status, (unsigned int)userdata);
-
-	LocationAddress *addr = NULL;
-	LocationAccuracy *acc = NULL;
-	LocationObject *loc = (LocationObject*)userdata;
-
-	// This function works properly after service is enabled.
-	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_address(loc, &addr, &acc)) {
-		g_debug ("SYNC>> Current address> %s %s %s %s %s %s %s",
-			addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
-		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-		location_address_free(addr);
-		location_accuracy_free(acc);
-	} else g_warning ("SYNC>> Current address> failed");
-}
-
-int main (int argc, char *argv[])
-{
-	LocationObject *loc = NULL;
-	gulong handler_id = 0;
-	int ret = LOCATION_ERROR_NONE;
-
-	location_init ();
-
-	loop = g_main_loop_new (NULL, TRUE);
-
-	loc  = location_new (LOCATION_METHOD_GPS);
-	if(!loc){
-		g_debug("location_new failed");
-		return -1;
-	}
-
-	handler_id = g_signal_connect (loc, "service-enabled", G_CALLBACK(cb_service_enabled), loc);
-	location_start (loc);
-	g_main_loop_run (loop);
-
-	g_signal_handler_disconnect(loc, handler_id);
-	location_stop (loc);
-	location_free (loc);
-
-	return 0;
-}
- * @endcode
- */
-int location_get_address (LocationObject *obj, LocationAddress **address, LocationAccuracy **accuracy);
-
-/**
- * @brief
- * Get current address information asynchronously with estimate of the accuracy by using current position.
- * @remarks None.
- * @pre
- * #location_init should be called before.\n
- * #location_start should be called before.\n
- * Calling application must have glib or ecore main loop.\n
- * Calling application must have an active data connection.
- * @post None.
- * @param [in]
- * obj - a #LocationObject created by #location_new
- * @param [in]
- * callback - A pointer of function which will be called after address is gained or when an error occurs.
- * @param [in]
- * userdata - data to pass to function
- * @return int
- * @retval 0                              Success
- *
- * Please refer #LocationError for more information.
- * @see
- * location_get_address\n
- * @par Example
- * @code
-#include <location.h>
-#include <location-map-service.h>
-static GMainLoop *loop = NULL;
-
-static void
-cb_address (LocationError error, LocationAddress *addr, LocationAccuracy *acc, gpointer userdata)
-{
-	g_debug ("ASYNC>> location_get_address_async> %s %s %s %s %s %s %s",
-			addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
-	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
-}
-
-static void cb_service_enabled (GObject *self, guint status, gpointer userdata)
-{
-	g_debug("cb_service_enabled: status(%d) userdata(0x%x)", status, (unsigned int)userdata);
-
-	LocationObject *loc = (LocationObject*)userdata;
-	// This function works properly after service is enabled.
-	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_address_async(loc, cb_address, loc))
-		g_debug("location_get_address_async() success");
-	else g_warning ("location_get_address_async() failed");
-}
-
-
-int main (int argc, char *argv[])
-{
-	LocationObject *loc = NULL;
-	gulong handler_id = 0;
-	int ret = LOCATION_ERROR_NONE;
-
-	location_init ();
-
-	loop = g_main_loop_new (NULL, TRUE);
-
-	loc  = location_new (LOCATION_METHOD_GPS);
-	if(!loc){
-		g_debug("location_new failed");
-		return -1;
-	}
-
-	handler_id = g_signal_connect (loc, "service-enabled", G_CALLBACK(cb_service_enabled), loc);
-	location_start (loc);
-	g_main_loop_run (loop);
-
-	g_signal_handler_disconnect(loc, handler_id);
-	location_stop (loc);
-	location_free (loc);
-
-	return 0;
-}
- * @endcode
- */
-int location_get_address_async (LocationObject *obj, LocationAddressCB callback, gpointer userdata);
+int location_map_get_position_from_freeformed_address_async (LocationMapObject *obj, const gchar *address, LocationPositionCB callback,	gpointer userdata);
 
 /**
  * @brief
@@ -545,7 +408,7 @@ int location_get_address_async (LocationObject *obj, LocationAddressCB callback,
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * position - a #LocationPosition
  * @param [out]
@@ -557,7 +420,7 @@ int location_get_address_async (LocationObject *obj, LocationAddressCB callback,
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_address_from_position_async\n
+ * location_map_get_address_from_position_async\n
  * @par Example
  * @code
 #include <location.h>
@@ -567,16 +430,16 @@ static GMainLoop *loop = NULL;
 int
 main (int argc, char *argv[])
 {
-	LocationObject *loc = NULL;
+	LocationMapObject *loc = NULL;
 	int ret = LOCATION_ERROR_NONE;
 
 	location_init ();
 
 	loop = g_main_loop_new (NULL, TRUE);
 
-	loc  = location_new (LOCATION_METHOD_GPS);
+	loc  = location_map_new (NULL);
 	if(!loc){
-		g_debug("location_new failed");
+		g_debug("location_map_new failed");
 		return -1;
 	}
 
@@ -586,7 +449,7 @@ main (int argc, char *argv[])
 
 	//Calling application must have an active data connection before using this function.
 	pos = location_position_new (0, 37.257809, 127.056383, 0, LOCATION_STATUS_2D_FIX);
-	if (LOCATION_ERROR_NONE == location_get_address_from_position(loc, pos, &addr, &acc)) {
+	if (LOCATION_ERROR_NONE == location_map_get_address_from_position(loc, pos, &addr, &acc)) {
 		g_debug ("SYNC>> address from position> %s %s %s %s %s %s %s",
 			addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
 		g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
@@ -594,10 +457,11 @@ main (int argc, char *argv[])
 		location_accuracy_free(acc);
 	} else g_warning ("SYNC>> address from position> failed");
 	location_position_free (pos);
+	location_map_free (loc);
 }
  * @endcode
  */
-int location_get_address_from_position (LocationObject *obj, const LocationPosition *position, LocationAddress **address, LocationAccuracy **accuracy);
+int location_map_get_address_from_position (LocationMapObject *obj, const LocationPosition *position, LocationAddress **address, LocationAccuracy **accuracy);
 
 /**
  * @brief
@@ -609,7 +473,7 @@ int location_get_address_from_position (LocationObject *obj, const LocationPosit
  * Calling application must have an active data connection.
  * @post None.
  * @param [in]
- * obj - a #LocationObject created by #location_new
+ * obj - a #LocationMapObject created by #location_map_new
  * @param [in]
  * position - a #LocationPosition
  * @param [in]
@@ -621,7 +485,7 @@ int location_get_address_from_position (LocationObject *obj, const LocationPosit
  *
  * Please refer #LocationError for more information.
  * @see
- * location_get_address_from_position\n
+ * location_map_get_address_from_position\n
  * @par Example
  * @code
 #include <location.h>
@@ -631,23 +495,23 @@ static GMainLoop *loop = NULL;
 static void
 cb_address_from_position (LocationError error, LocationAddress *addr, LocationAccuracy *acc, gpointer userdata)
 {
-	g_debug ("ASYNC>> location_get_address_from_position_async> %s %s %s %s %s %s %s",
+	g_debug ("ASYNC>> location_map_get_address_from_position_async> %s %s %s %s %s %s %s",
 			addr->building_number, addr->street, addr->district, addr->city, addr->state, addr->postal_code, addr->country_code);
 	g_debug ("\tAccuracy level %d (%.0f meters %.0f meters)", acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
 }
 
-void get_address_from_position(LocationObject* loc)
+void get_address_from_position(LocationMapObject* loc)
 {
 	LocationPosition *pos = location_position_new (0, 37.257809, 127.056383, 0, LOCATION_STATUS_2D_FIX);
 	//Calling application must have an active data connection before using this function.
-	if (LOCATION_ERROR_NONE == location_get_address_from_position_async(loc, pos, cb_address_from_position, loc))
-		g_debug("location_get_address_from_position_async() success");
-	else g_warning ("location_get_address_from_position_async() failed");
+	if (LOCATION_ERROR_NONE == location_map_get_address_from_position_async(loc, pos, cb_address_from_position, loc))
+		g_debug("location_map_get_address_from_position_async() success");
+	else g_warning ("location_map_get_address_from_position_async() failed");
 	location_position_free (pos);
 }
  * @endcode
  */
-int location_get_address_from_position_async (LocationObject *obj, const LocationPosition *position,	LocationAddressCB callback, gpointer userdata);
+int location_map_get_address_from_position_async (LocationMapObject *obj, const LocationPosition *position,	LocationAddressCB callback, gpointer userdata);
 
 /**
  * @brief Request a search service from service provider.
@@ -655,7 +519,7 @@ int location_get_address_from_position_async (LocationObject *obj, const Locatio
  * @pre #location_init should be called before.\n
  *      #location_poi_pref_new should be set before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] filter - a #LocaitonPOIFilter created by #location_poi_filter_new
  * @param [in] position - a #LocationPosition
  * @param [in] pref - a #LocationPOIPreference created by #location_poi_pref_new
@@ -695,7 +559,7 @@ static void poi_cb(LocationError error, guint req_id, GList * landmark_list, gch
 	g_list_foreach (landmark_list, PrintLandmarkCb, NULL);
 }
 
-void search_poi(LocationObject* loc)
+void search_poi(LocationMapObject* loc)
 {
 	int ret = 0;
 	guint req_id = 0;
@@ -709,7 +573,7 @@ void search_poi(LocationObject* loc)
 	location_poi_pref_set_sort_by(pref, "name");
 	location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);
 
-	ret = location_search_poi (loc, filter, pos, pref, poi_cb, loc, &req_id);
+	ret = location_map_search_poi (loc, filter, pos, pref, poi_cb, loc, &req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to get poi. Error[%d]", ret);
 	}
@@ -721,7 +585,7 @@ void search_poi(LocationObject* loc)
 }
  * @endcode
  */
-int location_search_poi (LocationObject *obj, const LocationPOIFilter * filter, const LocationPosition *position, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
+int location_map_search_poi (LocationMapObject *obj, const LocationPOIFilter * filter, const LocationPosition *position, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
 
 /**
  * @brief Request a search service with area filter from service provider.
@@ -729,7 +593,7 @@ int location_search_poi (LocationObject *obj, const LocationPOIFilter * filter, 
  * @pre #location_init should be called before.\n
  *      #location_poi_pref_new should be set before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] filter - a #LocaitonPOIFilter created by #location_poi_filter_new
  * @param [in] boundary - a #LocationBoundary
  * @param [in] pref - a #LocationPOIPreference created by #location_poi_pref_new
@@ -769,7 +633,7 @@ static void poi_cb(LocationError error, guint req_id, GList * landmark_list, gch
 	g_list_foreach (landmark_list, PrintLandmarkCb, NULL);
 }
 
-void search_poi(LocationObject* loc)
+void search_poi(LocationMapObject* loc)
 {
 	int ret = 0;
 	guint req_id = 0;
@@ -786,7 +650,7 @@ void search_poi(LocationObject* loc)
 	location_poi_pref_set_sort_by(pref, "name");
 	location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);
 
-	ret = location_search_poi_by_area (loc, filter, bbox, pref, poi_cb, loc, &req_id);
+	ret = location_map_search_poi_by_area (loc, filter, bbox, pref, poi_cb, loc, &req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to get poi. Error[%d]", ret);
 	}
@@ -797,7 +661,7 @@ void search_poi(LocationObject* loc)
 }
  * @endcode
  */
-int location_search_poi_by_area (LocationObject *obj, const LocationPOIFilter * filter, const LocationBoundary * boundary, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
+int location_map_search_poi_by_area (LocationMapObject *obj, const LocationPOIFilter * filter, const LocationBoundary * boundary, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
 
 /**
  * @brief Request a search service with address filter from service provider.
@@ -805,7 +669,7 @@ int location_search_poi_by_area (LocationObject *obj, const LocationPOIFilter * 
  * @pre #location_init should be called before.\n
  *      #location_poi_pref_new should be set before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] filter - a #LocaitonPOIFilter created by #location_poi_filter_new
  * @param [in] address - a #LocationAddress
  * @param [in] pref - a #LocationPOIPreference created by #location_poi_pref_new
@@ -845,7 +709,7 @@ static void poi_cb(LocationError error, guint req_id, GList * landmark_list, gch
 	g_list_foreach (landmark_list, PrintLandmarkCb, NULL);
 }
 
-void search_poi(LocationObject* loc)
+void search_poi(LocationMapObject* loc)
 {
 	int ret = 0;
 	guint req_id = 0;
@@ -860,7 +724,7 @@ void search_poi(LocationObject* loc)
 	location_poi_pref_set_sort_by(pref, "name");
 	location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);
 
-	ret = location_search_poi_by_address (loc, filter, addr, pref, poi_cb, loc, &req_id);
+	ret = location_map_search_poi_by_address (loc, filter, addr, pref, poi_cb, loc, &req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to get poi. Error[%d]", ret);
 	}
@@ -871,7 +735,7 @@ void search_poi(LocationObject* loc)
 }
  * @endcode
  */
-int location_search_poi_by_address (LocationObject *obj, const LocationPOIFilter * filter, const LocationAddress * addr, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
+int location_map_search_poi_by_address (LocationMapObject *obj, const LocationPOIFilter * filter, const LocationAddress * addr, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
 
 /**
  * @brief Request a search service with area filter from service provider.
@@ -879,7 +743,7 @@ int location_search_poi_by_address (LocationObject *obj, const LocationPOIFilter
  * @pre #location_init should be called before.\n
  *      #location_poi_pref_new should be set before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] filter - a #LocaitonPOIFilter created by #location_poi_filter_new
  * @param [in] address - a freeformed address
  * @param [in] pref - a #LocationPOIPreference created by #location_poi_pref_new
@@ -919,7 +783,7 @@ static void poi_cb(LocationError error, guint req_id, GList * landmark_list, gch
 	g_list_foreach (landmark_list, PrintLandmarkCb, NULL);
 }
 
-void search_poi(LocationObject* loc)
+void search_poi(LocationMapObject* loc)
 {
 	int ret = 0;
 	guint req_id = 0;
@@ -934,7 +798,7 @@ void search_poi(LocationObject* loc)
 	location_poi_pref_set_sort_by(pref, "name");
 	location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);
 
-	ret = location_search_poi_by_freeformed_address (loc, filter, addr, pref, poi_cb, loc, &req_id);
+	ret = location_map_search_poi_by_freeformed_address (loc, filter, addr, pref, poi_cb, loc, &req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to get poi. Error[%d]", ret);
 	}
@@ -945,15 +809,15 @@ void search_poi(LocationObject* loc)
 }
  * @endcode
  */
-int location_search_poi_by_freeformed_address (LocationObject *obj, const LocationPOIFilter * filter, const gchar * address, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
+int location_map_search_poi_by_freeformed_address (LocationMapObject *obj, const LocationPOIFilter * filter, const gchar * address, const LocationPOIPreference * pref, LocationPOICB cb, gpointer user_data, guint * req_id);
 
 /**
  * @brief Cancel the previous poi search.
  * @remarks refer #LocationLandmark
- * @pre #location_search_poi should be called before.
+ * @pre #location_map_search_poi should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
- * @param [in] req_id - a poi request id returned by location_search_poi
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
+ * @param [in] req_id - a poi request id returned by location_map_search_poi
  * @return int
  * @retval 0                              Success
  * Please refer #LocationError for more information.
@@ -987,7 +851,7 @@ static void poi_cb(LocationError error, guint req_id, GList * landmark_list, gch
 	g_list_foreach (landmark_list, PrintLandmarkCb, NULL);
 }
 
-void search_poi(LocationObject* loc)
+void search_poi(LocationMapObject* loc)
 {
 	int ret = 0;
 	guint req_id = 0;
@@ -1002,12 +866,12 @@ void search_poi(LocationObject* loc)
 	location_poi_pref_set_sort_by(pref, "name");
 	location_poi_pref_set_sort_order(pref, LOCATION_POI_PREF_SO_ASC);
 
-	ret = location_search_poi (loc, filter, addr, pref, poi_cb, loc, &req_id);
+	ret = location_map_search_poi (loc, filter, addr, pref, poi_cb, loc, &req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to get poi. Error[%d]", ret);
 	}
 
-	ret = location_cancel_poi_request (loc, req_id);
+	ret = location_map_cancel_poi_request (loc, req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_debug("Fail to cancel poi request. Err[%d]", ret);
 	}
@@ -1018,14 +882,14 @@ void search_poi(LocationObject* loc)
 }
  * @endcode
  */
-int location_cancel_poi_request (LocationObject *obj, guint req_id);
+int location_map_cancel_poi_request (LocationMapObject *obj, guint req_id);
 
 /**
  * @brief Request a route service from service provider.
  * @remarks refer #LocationRoute, #LocationRouteSegment and #LocationRouteStep
- * @pre #location_new should be called before.
+ * @pre #location_map_new should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] origin - a #LocationPosition
  * @param [in] destination - a #LocationPosition
  * @param [in] waypoint - a list of #LocationPosition
@@ -1175,7 +1039,7 @@ static void cb_route(LocationError error, guint req_id, GList * route_list, gcha
 	}
 }
 
-int request_route(LocationObject *loc)
+int request_route(LocationMapObject *loc)
 {
 	int ret = 0;
 	LocationPosition *origin = location_position_new(0, 37.564263, 126.974676, 0, LOCATION_STATUS_2D_FIX);	// Seoul city hall
@@ -1206,15 +1070,15 @@ int request_route(LocationObject *loc)
  }
  * @endcode
  */
-int location_request_route (LocationObject *obj, LocationPosition *origin, LocationPosition *destination, GList *waypoint, const LocationRoutePreference * pref, LocationRouteCB cb, gpointer user_data, guint * req_id);
+int location_map_request_route (LocationMapObject *obj, LocationPosition *origin, LocationPosition *destination, GList *waypoint, const LocationRoutePreference * pref, LocationRouteCB cb, gpointer user_data, guint * req_id);
 
 /**
  * @brief Cancel the previous route request.
  * @remarks None
- * @pre #location_request_route should be called before.
+ * @pre #location_map_request_route should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
- * @param [in] req_id - a route request id returned by location_search_route
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
+ * @param [in] req_id - a route request id returned by location_map_search_route
  * @return int
  * @retval 0                              Success
  * Please refer #LocationError for more information.
@@ -1223,30 +1087,30 @@ int location_request_route (LocationObject *obj, LocationPosition *origin, Locat
 #include <location.h>
 #include <location-map-service.h>
 
-int cancel_route_request (LocationObject *loc, guint req_id)
+int cancel_route_request (LocationMapObject *loc, guint req_id)
 {
 	g_printf("cancel_route_request\n");
 
 	int ret = LOCATION_ERROR_NONE;
 
-	ret = location_cancel_route_request(loc, req_id);
+	ret = location_map_cancel_route_request(loc, req_id);
 	if (ret != LOCATION_ERROR_NONE) {
 		g_printf("Fail to cancel route request. Error[%d]\n", ret);
 	}
 	else {
-		g_printf("location_cancel_route_request, req_id %d\n", req_id);
+		g_printf("location_map_cancel_route_request, req_id %d\n", req_id);
 	}
 }
  * @endcode
  */
-int location_cancel_route_request (LocationObject *obj, guint req_id);
+int location_map_cancel_route_request (LocationMapObject *obj, guint req_id);
 
 /**
  * @brief Check wheither a map service is available on a service provider
  * @remarks None
- * @pre #location_new should be called before.
+ * @pre #location_map_new should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] type - a #LocationMapService
  * @return gboolean
  * @retval TRUE if supported
@@ -1255,13 +1119,13 @@ int location_cancel_route_request (LocationObject *obj, guint req_id);
 #include <location.h>
 #include <location-map-service.h>
 
-int check_map_service (LocationObject *loc)
+int check_map_service (LocationMapObject *loc)
 {
 	g_printf("check_map_service\n");
 
 	gboolean is_supported = FALSE;
 
-	is_supported = location_is_supported_map_provider_capability(loc, MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID);
+	is_supported = location_map_is_supported_provider_capability(loc, MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID);
 	if (is_supported == TRUE) {
 		g_printf("Map Service(MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID) is supported.\n");
 	}
@@ -1271,14 +1135,14 @@ int check_map_service (LocationObject *loc)
 }
  * @endcode
  */
-gboolean location_is_supported_map_provider_capability (LocationObject *obj, LocationMapServiceType type);
+gboolean location_map_is_supported_provider_capability (LocationMapObject *obj, LocationMapServiceType type);
 
 /**
  * @brief Get Map service key on a service provider
  * @remarks None
- * @pre #location_new should be called before.
+ * @pre #location_map_new should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
  * @param [in] type - a #LocationMapService
  * @return GList
  * @retval a list of keys
@@ -1295,47 +1159,47 @@ static void _print_keys(gpointer data)
 	g_printf("Key[%s] is available now\n", key);
 }
 
-int get_map_service_key (LocationObject *loc)
+int get_map_service_key (LocationMapObject *loc)
 {
 	g_printf("check_map_service\n");
 
 	GList *keys = NULL;
 
-	keys = location_get_map_provider_capability_key(loc, MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID);
+	keys = location_map_get_provider_capability_key(loc, MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID);
 	if (keys) {
 		g_list_foreach (keys, _print_keys, NULL);
 		g_list_free_full (keys, g_free);
 	}
 	else {
-		g_printf("Map Service(MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID) doesnot have keys. Need to check wheither its service is supported.\n");
+		g_printf("Map Service(MAP_SERVICE_ROUTE_REQUEST_FEATURE_TO_AVOID) does not have keys. Need to check whether its service is supported.\n");
 	}
 }
  * @endcode
  */
-int location_get_map_provider_capability_key (LocationObject *obj, LocationMapServiceType type, GList **key);
+int location_map_get_provider_capability_key (LocationMapObject *obj, LocationMapServiceType type, GList **key);
 
 /**
  * @brief Get Map service Preference on a service provider
  * @remarks None
- * @pre #location_new should be called before.
+ * @pre #location_map_new should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
- * @return #LocationPreference
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
+ * @return #LocationMapPref
  * @retval a preference
  * @par Example
  * @code
 #include <location.h>
 #include <location-map-service.h>
-	int get_map_service_pref (LocationObject loc)
+	int get_map_service_pref (LocationMapObject loc)
 	{
 		if (!loc) return -1;
 
-		LocationPreference *svc_pref = location_get_map_service_pref (loc);
+		LocationMapPref *svc_pref = location_map_get_service_pref (loc);
 		if (!svc_pref) return -1;
 
-		gchar *name = location_pref_get_provider_name (svc_pref);
-		gchar *unit = location_pref_get_distance_unit (svc_pref);
-		gchar *language = location_pref_get_language (svc_pref);
+		gchar *name = location_map_pref_get_provider (svc_pref);
+		gchar *unit = location_map_pref_get_distance_unit (svc_pref);
+		gchar *language = location_map_pref_get_language (svc_pref);
 
 		g_printf("provider [%s]: distance unit [%s], languange [%s]\n", name, unit, language);
 
@@ -1344,15 +1208,15 @@ int location_get_map_provider_capability_key (LocationObject *obj, LocationMapSe
 
  * @endcode
  */
-LocationPreference *location_get_map_service_pref (LocationObject *obj);
+LocationMapPref *location_map_get_service_pref (LocationMapObject *obj);
 
 /**
  * @brief Set Map service preference on a service provider
  * @remarks None
- * @pre #location_new should be called before.
+ * @pre #location_map_new should be called before.
  * @post None.
- * @param [in] obj - a #LocationObject created by #location_new
- * @param [in] pref = a #LocationPreference
+ * @param [in] obj - a #LocationMapObject created by #location_map_new
+ * @param [in] pref = a #LocationMapPref
  * @return gboolean
  * @retval TRUE if success
  * @par Example
@@ -1360,25 +1224,59 @@ LocationPreference *location_get_map_service_pref (LocationObject *obj);
 #include <location.h>
 #include <location-map-service.h>
 
-int set_map_service_pref (LocationObject *loc)
+int set_map_service_pref (LocationMapObject *loc)
 {
 	if (!loc) return -1;
 
-	LocationPreference *svc_pref = location_pref_new();
-	location_pref_set_language (svc_pref, "en");
-	location_pref_set_distance_unit (svc_pref, "MI");
+	LocationMapPref *svc_pref = location_map_pref_new();
+	location_map_pref_set_language (svc_pref, "en");
+	location_map_pref_set_distance_unit (svc_pref, "MI");
 
-	gboolean ret = location_set_map_service_pref (loc, svc_pref);
+	gboolean ret = location_map_set_service_pref (loc, svc_pref);
 	if (!ret) {
-		location_pref_pref (svc_pref);
+		location_map_pref_pref (svc_pref);
 		return -1;
 	}
-	location_pref_pref (svc_pref);
+	location_map_pref_pref (svc_pref);
 	return 0;
 }
  * @endcode
  */
-gboolean location_set_map_service_pref (LocationObject *obj, LocationPreference *pref);
+gboolean location_map_set_service_pref (LocationMapObject *obj, LocationMapPref *pref);
+
+/**
+ * @brief Get supported map providers
+ * @remarks LocationMapObject should be created before.
+ * @pre None.
+ * @post None.
+ * @param [in] obj - #LocationMapObject
+ * @return Glist
+ * @retval a list of providers
+*/
+GList *location_map_get_supported_providers (LocationMapObject *obj);
+
+/**
+ * @brief Get current default provider
+ * @remarks LocationMapObject should be created before.
+ * @pre None.
+ * @post None.
+ * @param [in] obj - LocationMapObject
+ * @return gchar
+ * @retval provider name
+ */
+gchar *location_map_get_default_provider (LocationMapObject *obj);
+
+/**
+ * @brief Set current provider
+ * @remarks LocationMapObject should be created before.
+ * @pre None.
+ * @post None.
+ * @param [in] obj - LocationMapObject
+ * @param [in] provider - gchar
+ * @return gboolean
+ * @retval TRUE if success
+ */
+gboolean location_map_set_provider (LocationMapObject *obj, gchar *provider);
 
 /**
  * @} @}

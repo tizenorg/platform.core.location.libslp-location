@@ -24,10 +24,14 @@
 #endif
 
 #include <glib.h>
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 #include "module-internal.h"
 #include "location-log.h"
 
-#define MAX_MODULE_INDEX 10
+#define MAX_MODULE_INDEX 3
 const char* MODULE_PATH_PREFIX = "/usr/lib/location/module";
 
 static GMod*
@@ -168,30 +172,6 @@ mod_new (const char* module_name)
 			ret_mod = NULL;
 		}else
 			ret_mod = (gpointer)_mod;
-	}else if(g_str_has_prefix(module_name, "ips")){
-		LocationIpsMod* _mod = g_new0(LocationIpsMod, 1);
-		_mod->gmod = gmod;
-		_mod->init = init;
-		_mod->shutdown= shutdown;
-		_mod->handler= _mod->init(&(_mod->ops));
-		if(!_mod->handler){
-			LOCATION_LOGW("module init failed");
-			gmod_free(_mod->gmod);
-			ret_mod = NULL;
-		}else
-			ret_mod = (gpointer)_mod;
-	}else if(g_str_has_prefix(module_name, "sps")){
-		LocationSpsMod* _mod = g_new0(LocationSpsMod, 1);
-		_mod->gmod = gmod;
-		_mod->init = init;
-		_mod->shutdown= shutdown;
-		_mod->handler= _mod->init(&(_mod->ops));
-		if(!_mod->handler){
-			LOCATION_LOGW("module init failed");
-			gmod_free(_mod->gmod);
-			ret_mod = NULL;
-		}else
-			ret_mod = (gpointer)_mod;
 	}else{
 		LOCATION_LOGW("module name (%s) is wrong", module_name);
 		ret_mod = NULL;
@@ -207,7 +187,7 @@ mod_free (gpointer mod,
 	if(!mod || !module_name)
 		return;
 
-	if(0 == g_strcmp0(module_name, "map-service")){
+	if(g_str_has_prefix(module_name, "map-service")){
 		LocationServiceMod* _mod = (LocationServiceMod*)mod;
 		if(_mod->shutdown && _mod->handler){
 			_mod->shutdown(_mod->handler);
@@ -239,26 +219,6 @@ mod_free (gpointer mod,
 		_mod->gmod = NULL;
 	}else if(0 == g_strcmp0(module_name, "cps")){
 		LocationCpsMod* _mod = (LocationCpsMod*)mod;
-		if(_mod->shutdown && _mod->handler){
-			_mod->shutdown(_mod->handler);
-		}
-		_mod->handler = NULL;
-		_mod->init = NULL;
-		_mod->shutdown= NULL;
-		gmod_free(_mod->gmod);
-		_mod->gmod = NULL;
-	}else if(0 == g_strcmp0(module_name, "ips")){
-		LocationIpsMod* _mod = (LocationIpsMod*)mod;
-		if(_mod->shutdown && _mod->handler){
-			_mod->shutdown(_mod->handler);
-		}
-		_mod->handler = NULL;
-		_mod->init = NULL;
-		_mod->shutdown= NULL;
-		gmod_free(_mod->gmod);
-		_mod->gmod = NULL;
-	}else if(0 == g_strcmp0(module_name, "sps")){
-		LocationSpsMod* _mod = (LocationSpsMod*)mod;
 		if(_mod->shutdown && _mod->handler){
 			_mod->shutdown(_mod->handler);
 		}
@@ -363,4 +323,26 @@ module_is_supported(const char *module_name)
 	}
 
 	return found;
+}
+
+gchar *
+mod_get_realpath (const gchar *module_name)
+{
+	gchar origin_path[PATH_MAX] = {0, };
+	gchar link_path[PATH_MAX] = {0, };
+	gchar *path = NULL;
+
+	snprintf (link_path, PATH_MAX, "%s/lib%s.so", MODULE_PATH_PREFIX, module_name);
+
+	realpath (link_path, origin_path);
+
+	if (!origin_path) {
+		LOCATION_LOGE ("Fail to get real path of [%s]", module_name);
+		return NULL;
+	}
+
+	path = strrchr(origin_path, '/');
+	if (!path) return NULL;
+
+	return g_strdup (path);
 }

@@ -32,7 +32,6 @@
 #include <location-address.h>
 #include <location-boundary.h>
 #include <location-satellite.h>
-#include <location-map-service.h>
 
 G_BEGIN_DECLS
 
@@ -201,6 +200,24 @@ cb_service_updated (GObject *self,
 					acc->level, acc->horizontal_accuracy, acc->vertical_accuracy);
 		}
 			break;
+		case SATELLITE_UPDATED: {
+			int idx = 0;
+			guint prn;
+			gboolean used;
+			guint elevation;
+			guint azimuth;
+			gint snr;
+
+			LocationSatellite *sat = (LocationSatellite *)data;
+			g_debug ("ASYNC>> Current Satellite> time: %d, satellite in view = %d, satellite in used = %d", sat->timestamp, sat->num_of_sat_inview, sat->num_of_sat_used);
+			g_debug ("\tinview satellite information = ");
+			for (idx=0; idx<sat->num_of_sat_inview; idx++) {
+				location_satellite_get_satellite_details(sat, idx, &prn, &used, &elevation, &azimuth, &snr);
+				g_debug ("\t\t[%02d] used: %d, prn: %d, elevation: %d, azimuth: %d, snr: %d", idx, used, prn, elevation, azimuth, snr);
+			}
+		}
+			break;
+
 		default:
 			g_warning ("ASYNC>> Undefined update type");
 			break;
@@ -577,14 +594,6 @@ int main (int argc, char *argv[])
  * @endcode
  */
 int location_get_last_satellite (LocationObject *obj, LocationSatellite **satellite);
-
-/**
- * @brief
- * Get last known position information with estimate of the accuracy.
- * @remarks This API would be DEPRECATED. \n
- * @see location_get_last_position
- */
-int location_get_last_known_position (LocationObject *obj, LocationMethod method, LocationLastPosition *last_position) LOCATION_DEPRECATED_API;
 
 /**
  * @brief

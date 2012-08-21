@@ -86,7 +86,6 @@ location_velocity_copy (const LocationVelocity *velocity)
 								velocity->speed,
 								velocity->direction,
 								velocity->climb);
-	if(new_velocity) new_velocity->updated_timestamp = velocity->updated_timestamp;
 
 	return new_velocity;
 }

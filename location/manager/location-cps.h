@@ -49,6 +49,12 @@ struct _LocationCps
 struct _LocationCpsClass
 {
 	GObjectClass parent_class;
+
+	void (* enabled) (guint type);
+	void (* disabled) (guint type);
+	void (* updated) (guint type, gpointer data);
+	void (* zone_in) (guint type, gpointer position, gpointer boundary);
+	void (* zone_out) (guint type, gpointer position, gpointer boundary);
 };
 
 GType location_cps_get_type (void);

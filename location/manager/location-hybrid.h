@@ -59,6 +59,8 @@ struct _LocationHybridClass
 
 GType location_hybrid_get_type (void);
 
+#define HYBRID_POSITION_EXPIRATION_TIME		9
+
 G_END_DECLS
 
 #endif

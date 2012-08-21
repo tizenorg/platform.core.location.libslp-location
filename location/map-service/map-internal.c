@@ -27,12 +27,13 @@
 #include "location-types.h"
 #include "module-internal.h"
 #include "location-route.h"
-#include "location-ielement.h"
+#include "location-map-ielement.h"
 #include "map-service.h"
 
 int
-map_service_get_geocode (LocationIElement *self,
+map_service_get_geocode (LocationMapIElement *self,
 	const LocationAddress *address,
+	const LocationMapPref *svc_pref,
 	GList **position_list,
 	GList **accuracy_list)
 {
@@ -41,12 +42,13 @@ map_service_get_geocode (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode)(priv->mod->handler, address, position_list, accuracy_list);
+	return (priv->mod->ops.get_geocode)(priv->mod->handler, address, svc_pref, position_list, accuracy_list);
 }
 
 int
-map_service_get_geocode_freeform (LocationIElement *self,
+map_service_get_geocode_freeform (LocationMapIElement *self,
 	const gchar  *address,
+	const LocationMapPref *svc_pref,
 	GList **position_list,
 	GList **accuracy_list)
 {
@@ -55,12 +57,13 @@ map_service_get_geocode_freeform (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_freetext, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_freetext)(priv->mod->handler, address, position_list, accuracy_list);
+	return (priv->mod->ops.get_geocode_freetext)(priv->mod->handler, address, svc_pref, position_list, accuracy_list);
 }
 
 int
-map_service_get_reversegeocode (LocationIElement *self,
+map_service_get_reversegeocode (LocationMapIElement *self,
 	const LocationPosition *position,
+	const LocationMapPref *svc_pref,
 	LocationAddress **address,
 	LocationAccuracy **accuracy)
 {
@@ -69,12 +72,13 @@ map_service_get_reversegeocode (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_reverse_geocode, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_reverse_geocode)(priv->mod->handler, position, address, accuracy);
+	return (priv->mod->ops.get_reverse_geocode)(priv->mod->handler, position, svc_pref, address, accuracy);
 }
 
 int
-map_service_get_geocode_async (LocationIElement *self,
-	LocationAddress *address,
+map_service_get_geocode_async (LocationMapIElement *self,
+	const LocationAddress *address,
+	const LocationMapPref *svc_pref,
 	LocationPositionCB callback,
 	gpointer userdata)
 {
@@ -83,12 +87,13 @@ map_service_get_geocode_async (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_async)(priv->mod->handler, address, callback, userdata);
+	return (priv->mod->ops.get_geocode_async)(priv->mod->handler, address, svc_pref, callback, userdata);
 }
 
 int
-map_service_get_geocode_freeform_async (LocationIElement *self,
+map_service_get_geocode_freeform_async (LocationMapIElement *self,
 	const gchar *address,
+	const LocationMapPref *svc_pref,
 	LocationPositionCB callback,
 	gpointer userdata)
 {
@@ -97,12 +102,13 @@ map_service_get_geocode_freeform_async (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_freetext_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_freetext_async)(priv->mod->handler, address, callback, userdata);
+	return (priv->mod->ops.get_geocode_freetext_async)(priv->mod->handler, address, svc_pref, callback, userdata);
 }
 
 int
-map_service_get_reversegeocode_async (LocationIElement *self,
+map_service_get_reversegeocode_async (LocationMapIElement *self,
 	const LocationPosition *position,
+	const LocationMapPref *svc_pref,
 	LocationAddressCB callback,
 	gpointer userdata)
 {
@@ -111,13 +117,13 @@ map_service_get_reversegeocode_async (LocationIElement *self,
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_reverse_geocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_reverse_geocode_async)(priv->mod->handler, position, callback, userdata);
+	return (priv->mod->ops.get_reverse_geocode_async)(priv->mod->handler, position, svc_pref, callback, userdata);
 }
 
 int
-map_service_search_poi (LocationIElement *self,
+map_service_search_poi (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const LocationPosition *position,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint *req_id)
 {
 	LOCATION_LOGD("map_service_search_poi");
@@ -129,9 +135,9 @@ map_service_search_poi (LocationIElement *self,
 }
 
 int
-map_service_search_poi_by_area (LocationIElement *self,
+map_service_search_poi_by_area (LocationMapIElement *self,
 		const LocationPOIFilter * filter, const LocationBoundary *boundary,
-		const LocationPreference *svc_pref, const LocationPOIPreference * pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference * pref,
 		LocationPOICB cb, const gpointer user_data, guint *req_id)
 {
 	LOCATION_LOGD("map_service_search_poi_by_area");
@@ -143,9 +149,9 @@ map_service_search_poi_by_area (LocationIElement *self,
 }
 
 int
-map_service_search_poi_by_address (LocationIElement *self,
+map_service_search_poi_by_address (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const LocationAddress *address,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 						LocationPOICB cb, const gpointer user_data, guint *req_id)
 {
 	LOCATION_LOGD("map_service_search_poi_by_address");
@@ -157,9 +163,9 @@ map_service_search_poi_by_address (LocationIElement *self,
 }
 
 int
-map_service_search_poi_by_freeform (LocationIElement *self,
+map_service_search_poi_by_freeform (LocationMapIElement *self,
 		const LocationPOIFilter *filter, const gchar *freeform,
-		const LocationPreference *svc_pref, const LocationPOIPreference *pref,
+		const LocationMapPref *svc_pref, const LocationPOIPreference *pref,
 		LocationPOICB cb, const gpointer user_data, guint *req_id)
 {
 	LOCATION_LOGD("map_service_search_poi_by_freeform");
@@ -171,7 +177,7 @@ map_service_search_poi_by_freeform (LocationIElement *self,
 }
 
 int
-map_service_cancel_poi_request (LocationIElement *self, guint req_id)
+map_service_cancel_poi_request (LocationMapIElement *self, guint req_id)
 {
 	LOCATION_LOGD("map_service_cancel_poi_request");
 	MapServicePrivate* priv = GET_PRIVATE(self);
@@ -183,9 +189,9 @@ map_service_cancel_poi_request (LocationIElement *self, guint req_id)
 
 
 int
-map_service_request_route (LocationIElement *self,
+map_service_request_route (LocationMapIElement *self,
 		const LocationPosition *origin, const LocationPosition *destination, GList *waypoint,
-		const LocationPreference *svc_pref, const LocationRoutePreference * pref,
+		const LocationMapPref *svc_pref, const LocationRoutePreference * pref,
 		LocationRouteCB cb, const gpointer user_data, guint * req_id)
 {
 	LOCATION_LOGD("map_service_request_route");
@@ -198,7 +204,7 @@ map_service_request_route (LocationIElement *self,
 }
 
 int
-map_service_cancel_route_request (LocationIElement *self, guint req_id)
+map_service_cancel_route_request (LocationMapIElement *self, guint req_id)
 {
 	LOCATION_LOGD("map_service_cancel_route_request");
 	MapServicePrivate* priv = GET_PRIVATE(self);
@@ -210,26 +216,26 @@ map_service_cancel_route_request (LocationIElement *self, guint req_id)
 }
 
 gboolean
-map_service_is_supported_map_provider_capability (LocationIElement *self, LocationMapServiceType type)
+map_service_is_supported_provider_capability (LocationMapIElement *self, LocationMapServiceType type)
 {
-	LOCATION_LOGD("map_service_is_supported_map_provider_capability");
+	LOCATION_LOGD("map_service_is_supported_provider_capability");
 	MapServicePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (priv->mod->ops.is_supported_map_provider_capability, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (priv->mod->ops.is_supported_provider_capability, LOCATION_ERROR_NOT_AVAILABLE);
 
-	return (priv->mod->ops.is_supported_map_provider_capability)(priv->mod->handler, type);
+	return (priv->mod->ops.is_supported_provider_capability)(priv->mod->handler, type);
 }
 
 int
-map_service_get_map_provider_capability_key (LocationIElement *self, LocationMapServiceType type, GList **key)
+map_service_get_provider_capability_key (LocationMapIElement *self, LocationMapServiceType type, GList **key)
 {
-	LOCATION_LOGD("map_service_get_map_provider_capability_key");
+	LOCATION_LOGD("map_service_get_provider_capability_key");
 	MapServicePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (priv->mod->ops.get_map_provider_capability_key, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (priv->mod->ops.get_provider_capability_key, LOCATION_ERROR_NOT_AVAILABLE);
 
-	return (priv->mod->ops.get_map_provider_capability_key)(priv->mod->handler, type, key);
+	return (priv->mod->ops.get_provider_capability_key)(priv->mod->handler, type, key);
 }
 

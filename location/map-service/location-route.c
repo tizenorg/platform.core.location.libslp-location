@@ -1280,7 +1280,7 @@ location_route_step_set_geometry (LocationRouteStep *step, GList *geometry)
 		step->geometry = NULL;
 	}
 
-	if (geometry) g_list_foreach (geometry, route_step_foreach_copy, step);
+	if (geometry) g_list_foreach (geometry, route_step_geometry_foreach_copy, step);
 
 	return TRUE;
 

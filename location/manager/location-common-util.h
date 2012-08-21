@@ -32,8 +32,12 @@
 
 G_BEGIN_DECLS
 
+int location_application_manager (void);
+int location_application_enabled (void);
+
 int set_prop_boundary(GList **prev_boundary_list, GList *new_boundary_list);
 int set_prop_removal_boundary(GList **prev_boundary_list, LocationBoundary *boundary);
+void free_boundary_list (gpointer data);
 
 G_END_DECLS
 

@@ -34,20 +34,29 @@
 #include "location-signaling-util.h"
 #include "location-common-util.h"
 
+#include <vconf-internal-location-keys.h>
 
 typedef struct _LocationGpsPrivate {
 	LocationGpsMod* 	mod;
 	gboolean 		is_started;
 	gboolean		set_noti;
 	gboolean 		enabled;
-	guint 			interval;
+	guint			pos_updated_timestamp;
+	guint 			pos_interval;
+	guint			vel_updated_timestamp;
+	guint			vel_interval;
+	guint			sat_updated_timestamp;
+	guint			sat_interval;
 	LocationPosition* 	pos;
 	LocationVelocity* 	vel;
 	LocationAccuracy* 	acc;
 	GList*			boundary_list;
 	ZoneStatus 		zone_status;
-	guint			sat_timestamp;
 	LocationSatellite* 	sat;
+
+	guint			pos_timer;
+	guint			vel_timer;
+
 } LocationGpsPrivate;
 
 enum {
@@ -55,7 +64,9 @@ enum {
 	PROP_DEV_NAME,
 	PROP_METHOD_TYPE,
 	PROP_LAST_POSITION,
-	PROP_UPDATE_INTERVAL,
+	PROP_POS_INTERVAL,
+	PROP_VEL_INTERVAL,
+	PROP_SAT_INTERVAL,
 	PROP_BOUNDARY,
 	PROP_REMOVAL_BOUNDARY,
 	PROP_NMEA,
@@ -74,6 +85,72 @@ G_DEFINE_TYPE_WITH_CODE (LocationGps, location_gps, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (LOCATION_TYPE_IELEMENT,
                          location_ielement_interface_init));
 
+static gboolean
+_position_timeout_cb (gpointer data)
+{
+	GObject *object = (GObject *)data;
+	LocationGpsPrivate *priv = GET_PRIVATE(object);
+	if (!priv) return FALSE;
+
+	LocationPosition *pos = NULL;
+	LocationAccuracy *acc = NULL;
+
+	if (priv->pos) {
+		pos = location_position_copy(priv->pos);
+	}
+	else {
+		pos = location_position_new (0, 0.0, 0.0, 0.0, LOCATION_STATUS_NO_FIX);
+	}
+
+	if (priv->acc) {
+		acc = location_accuracy_copy (priv->acc);
+	}
+	else {
+		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
+	}
+
+	LOCATION_LOGD("POSITION SERVICE_UPDATED");
+	g_signal_emit(object, signals[SERVICE_UPDATED], 0, POSITION_UPDATED, pos, acc);
+
+	location_position_free (pos);
+	location_accuracy_free (acc);
+
+	return TRUE;
+}
+
+static gboolean
+_velocity_timeout_cb (gpointer data)
+{
+	GObject *object = (GObject *)data;
+	LocationGpsPrivate *priv = GET_PRIVATE(object);
+	if (!priv) return FALSE;
+
+	LocationVelocity *vel = NULL;
+	LocationAccuracy *acc = NULL;
+
+	if (priv->vel) {
+		vel = location_velocity_copy(priv->vel);
+	}
+	else {
+		vel = location_velocity_new (0, 0.0, 0.0, 0.0);
+	}
+
+	if (priv->acc) {
+		acc = location_accuracy_copy (priv->acc);
+	}
+	else {
+		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
+	}
+
+	LOCATION_LOGD("VELOCITY SERVICE_UPDATED");
+	g_signal_emit(object, signals[SERVICE_UPDATED], 0, VELOCITY_UPDATED, vel, acc);
+
+	location_velocity_free (vel);
+	location_accuracy_free (acc);
+
+	return TRUE;
+}
+
 static void
 gps_status_cb (gboolean enabled,
 	LocationStatus status,
@@ -83,6 +160,13 @@ gps_status_cb (gboolean enabled,
 	g_return_if_fail(self);
 	LocationGpsPrivate* priv = GET_PRIVATE(self);
 	enable_signaling(self, signals, &(priv->enabled), enabled, status);
+
+	if (!priv->enabled) {
+		if (priv->pos_timer) g_source_remove (priv->pos_timer);
+		if (priv->vel_timer) g_source_remove (priv->vel_timer);
+		priv->pos_timer = 0;
+		priv->vel_timer = 0;
+	}
 }
 
 static void
@@ -96,8 +180,10 @@ gps_position_cb (gboolean enabled,
 	g_return_if_fail(pos);
 	g_return_if_fail(acc);
 	LocationGpsPrivate* priv = GET_PRIVATE(self);
+
 	enable_signaling(self, signals, &(priv->enabled), enabled, pos->status);
-	position_signaling(self, signals, &(priv->enabled), priv->interval, &(priv->pos), &(priv->acc), priv->boundary_list, &(priv->zone_status), enabled, pos, acc);
+	position_signaling(self, signals, &(priv->enabled), priv->pos_interval, TRUE, &(priv->pos_updated_timestamp), &(priv->pos), &(priv->acc), priv->boundary_list, &(priv->zone_status), pos, acc);
+
 }
 
 static void
@@ -109,7 +195,7 @@ gps_velocity_cb (gboolean enabled,
 	LOCATION_LOGD("gps_velocity_cb");
 	g_return_if_fail(self);
 	LocationGpsPrivate* priv = GET_PRIVATE(self);
-	velocity_signaling(self, signals, &(priv->enabled), priv->interval, &(priv->vel), enabled, vel, acc);
+	velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, TRUE, &(priv->vel_updated_timestamp), &(priv->vel), vel, acc);
 }
 
 static void
@@ -120,7 +206,29 @@ gps_satellite_cb (gboolean enabled,
 	LOCATION_LOGD("gps_satellite_cb");
 	g_return_if_fail(self);
 	LocationGpsPrivate* priv = GET_PRIVATE(self);
-	satellite_signaling(self, signals, &(priv->enabled), priv->interval, &(priv->sat_timestamp), &(priv->sat), enabled, sat);
+	satellite_signaling(self, signals, &(priv->enabled), priv->sat_interval, TRUE, &(priv->sat_updated_timestamp), &(priv->sat), sat);
+}
+
+static void
+location_setting_search_cb (keynode_t *key, gpointer self)
+{
+	LOCATION_LOGD("location_setting_search_cb");
+	g_return_if_fail(key);
+	g_return_if_fail(self);
+	LocationGpsPrivate* priv = GET_PRIVATE(self);
+	g_return_if_fail (priv->mod);
+	g_return_if_fail (priv->mod->handler);
+
+	if (location_setting_get_key_val(key) == VCONFKEY_LOCATION_GPS_SEARCHING) {
+		if (!priv->pos_timer) priv->pos_timer = g_timeout_add (priv->pos_interval * 1000, _position_timeout_cb, self);
+		if (!priv->vel_timer) priv->vel_timer = g_timeout_add (priv->vel_interval * 1000, _velocity_timeout_cb, self);
+	}
+	else {
+		if (priv->pos_timer) g_source_remove (priv->pos_timer);
+		if (priv->vel_timer) g_source_remove (priv->vel_timer);
+		priv->pos_timer = 0;
+		priv->vel_timer = 0;
+	}
 }
 
 static void
@@ -139,12 +247,16 @@ location_setting_gps_cb (keynode_t *key,
 	if (0 == location_setting_get_key_val(key) && priv->mod->ops.stop && priv->is_started) {
 		LOCATION_LOGD("location stopped by setting");
 		ret = priv->mod->ops.stop(priv->mod->handler);
-		if (ret == LOCATION_ERROR_NONE) priv->is_started = FALSE;
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = FALSE;
+		}
 	}
 	else if (1 == location_setting_get_key_val(key) && priv->mod->ops.start && !priv->is_started) {
 		LOCATION_LOGD("location resumed by setting");
 		ret = priv->mod->ops.start (priv->mod->handler, gps_status_cb, gps_position_cb, gps_velocity_cb, gps_satellite_cb, self);
-		if (ret == LOCATION_ERROR_NONE) priv->is_started = TRUE;
+		if (ret == LOCATION_ERROR_NONE) {
+			priv->is_started = TRUE;
+		}
 	}
 }
 
@@ -160,9 +272,8 @@ location_gps_start (LocationGps *self)
 	if (priv->is_started == TRUE) return LOCATION_ERROR_NONE;
 
 	int ret = LOCATION_ERROR_NONE;
-	int noti_err = 0;
 
-	if (!location_setting_get_int(GPS_ENABLED)) {
+	if (!location_setting_get_int(VCONFKEY_LOCATION_ENABLED)) {
 		ret = LOCATION_ERROR_NOT_ALLOWED;
 	}
 	else {
@@ -176,10 +287,8 @@ location_gps_start (LocationGps *self)
 	}
 
 	if(priv->set_noti == FALSE) {
-		noti_err = location_setting_add_notify (GPS_ENABLED, location_setting_gps_cb, self);
-		if (noti_err != 0) {
-			return LOCATION_ERROR_UNKNOWN;
-		}
+		location_setting_add_notify (VCONFKEY_LOCATION_ENABLED, location_setting_gps_cb, self);
+		location_setting_add_notify (VCONFKEY_LOCATION_GPS_STATE, location_setting_search_cb, self);
 		priv->set_noti = TRUE;
 	}
 
@@ -196,7 +305,6 @@ location_gps_stop (LocationGps *self)
 	g_return_val_if_fail (priv->mod->ops.stop, LOCATION_ERROR_NOT_AVAILABLE);
 
 	int ret = LOCATION_ERROR_NONE;
-	int noti_err = 0;
 
 	if ( priv->is_started == TRUE) {
 		ret = priv->mod->ops.stop (priv->mod->handler);
@@ -208,11 +316,14 @@ location_gps_stop (LocationGps *self)
 		}
 	}
 
+	if (priv->pos_timer ) g_source_remove (priv->pos_timer);
+	if (priv->vel_timer ) g_source_remove (priv->vel_timer);
+	priv->pos_timer = 0;
+	priv->vel_timer = 0;
+
 	if(priv->set_noti == TRUE) {
-		noti_err = location_setting_ignore_notify (GPS_ENABLED, location_setting_gps_cb);
-		if (noti_err != 0) {
-			return LOCATION_ERROR_UNKNOWN;
-		}
+		location_setting_ignore_notify (VCONFKEY_LOCATION_ENABLED, location_setting_gps_cb);
+		location_setting_ignore_notify (VCONFKEY_LOCATION_GPS_STATE, location_setting_search_cb);
 		priv->set_noti = FALSE;
 	}
 
@@ -223,7 +334,20 @@ static void
 location_gps_dispose (GObject *gobject)
 {
 	LOCATION_LOGD("location_gps_dispose");
-	G_OBJECT_CLASS (location_gps_parent_class)->dispose (gobject);
+
+	LocationGpsPrivate* priv = GET_PRIVATE(gobject);
+
+	if (priv->pos_timer) g_source_remove (priv->pos_timer);
+	if (priv->vel_timer) g_source_remove (priv->vel_timer);
+	priv->pos_timer = 0;
+	priv->vel_timer = 0;
+
+	if(priv->set_noti == TRUE) {
+		location_setting_ignore_notify (VCONFKEY_LOCATION_ENABLED, location_setting_gps_cb);
+		location_setting_ignore_notify (VCONFKEY_LOCATION_GPS_STATE, location_setting_search_cb);
+		priv->set_noti = FALSE;
+	}
+
 }
 
 static void
@@ -231,8 +355,34 @@ location_gps_finalize (GObject *gobject)
 {
 	LOCATION_LOGD("location_gps_finalize");
 	LocationGpsPrivate* priv = GET_PRIVATE(gobject);
+
 	module_free(priv->mod, "gps");
 	priv->mod = NULL;
+
+	if (priv->boundary_list) {
+		g_list_free_full (priv->boundary_list, free_boundary_list);
+		priv->boundary_list = NULL;
+	}
+
+	if (priv->pos) {
+		location_position_free(priv->pos);
+		priv->pos = NULL;
+	}
+
+	if (priv->vel) {
+		location_velocity_free(priv->vel);
+		priv->vel = NULL;
+	}
+
+	if (priv->acc) {
+		location_accuracy_free(priv->acc);
+		priv->acc = NULL;
+	}
+
+	if (priv->sat) {
+		location_satellite_free(priv->sat);
+		priv->sat = NULL;
+	}
 	G_OBJECT_CLASS (location_gps_parent_class)->finalize (gobject);
 }
 
@@ -270,17 +420,56 @@ location_gps_set_property (GObject *object,
 			if(ret != 0) LOCATION_LOGD("Removal boundary. Error[%d]", ret);
 			break;
 		}
-		case PROP_UPDATE_INTERVAL: {
+		case PROP_POS_INTERVAL: {
 			guint interval = g_value_get_uint(value);
 			LOCATION_LOGD("Set prop>> update-interval: %u", interval);
 			if(interval > 0) {
 				if(interval < LOCATION_UPDATE_INTERVAL_MAX)
-					priv->interval = interval;
+					priv->pos_interval = interval;
 				else
-					priv->interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
+					priv->pos_interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
 			}
 			else
-				priv->interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
+				priv->pos_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
+
+			if (priv->pos_timer) {
+				g_source_remove (priv->pos_timer);
+				priv->pos_timer = g_timeout_add (priv->pos_interval * 1000, _position_timeout_cb, object);
+			}
+
+			break;
+		}
+		case PROP_VEL_INTERVAL: {
+			guint interval = g_value_get_uint(value);
+			LOCATION_LOGD("Set prop>> update-interval: %u", interval);
+			if(interval > 0) {
+				if(interval < LOCATION_UPDATE_INTERVAL_MAX)
+					priv->vel_interval = interval;
+				else
+					priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
+			}
+			else
+				priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
+
+			if (priv->vel_timer) {
+				g_source_remove (priv->vel_timer);
+				priv->vel_timer = g_timeout_add (priv->vel_interval * 1000, _velocity_timeout_cb, object);
+			}
+
+			break;
+		}
+		case PROP_SAT_INTERVAL: {
+			guint interval = g_value_get_uint(value);
+			LOCATION_LOGD("Set prop>> update-interval: %u", interval);
+			if(interval > 0) {
+				if(interval < LOCATION_UPDATE_INTERVAL_MAX)
+					priv->sat_interval = interval;
+				else
+					priv->sat_interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
+			}
+			else
+				priv->sat_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
+
 			break;
 		}
 		default:
@@ -316,8 +505,14 @@ location_gps_get_property (GObject *object,
 		case PROP_LAST_POSITION:
 			g_value_set_boxed (value, priv->pos);
 			break;
-		case PROP_UPDATE_INTERVAL:
-			g_value_set_uint(value, priv->interval);
+		case PROP_POS_INTERVAL:
+			g_value_set_uint(value, priv->pos_interval);
+			break;
+		case PROP_VEL_INTERVAL:
+			g_value_set_uint(value, priv->vel_interval);
+			break;
+		case PROP_SAT_INTERVAL:
+			g_value_set_uint(value, priv->sat_interval);
 			break;
 		case PROP_BOUNDARY:
 			g_value_set_pointer(value, g_list_first(priv->boundary_list));
@@ -357,16 +552,27 @@ location_gps_get_position (LocationGps *self,
 	LocationPosition **position,
 	LocationAccuracy **accuracy)
 {
+	int ret = LOCATION_ERROR_NOT_AVAILABLE;
 	LOCATION_LOGD("location_gps_get_position");
 
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
+	setting_retval_if_fail(VCONFKEY_LOCATION_ENABLED);
 
 	LocModGpsOps ops = priv->mod->ops;
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (ops.get_position, LOCATION_ERROR_NOT_AVAILABLE);
-	return ops.get_position(priv->mod->handler, position, accuracy);
+
+	if (priv->pos) {
+		*position = location_position_copy (priv->pos);
+		ret = LOCATION_ERROR_NONE;
+	}
+
+	if (priv->acc) {
+		*accuracy = location_accuracy_copy (priv->acc);
+	}
+
+	return ret;
 }
 
 static int
@@ -374,7 +580,7 @@ location_gps_get_last_position (LocationGps *self,
 	LocationPosition **position,
 	LocationAccuracy **accuracy)
 {
-	LOCATION_LOGD("location_gps_get_position");
+	LOCATION_LOGD("location_gps_get_last_position");
 	// Enable to get a last position even though GPS_ENABLE dose not set on
 
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
@@ -394,14 +600,26 @@ location_gps_get_velocity (LocationGps *self,
 {
 	LOCATION_LOGD("location_gps_get_velocity");
 
+	int ret = LOCATION_ERROR_NOT_AVAILABLE;
+
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
+	setting_retval_if_fail(VCONFKEY_LOCATION_ENABLED);
 
 	LocModGpsOps ops = priv->mod->ops;
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (ops.get_velocity, LOCATION_ERROR_NOT_AVAILABLE);
-	return ops.get_velocity(priv->mod->handler, velocity, accuracy);
+	
+	if (priv->vel) {
+		*velocity = location_velocity_copy (priv->vel);
+		ret = LOCATION_ERROR_NONE;
+	}
+
+	if (priv->acc) {
+		*accuracy = location_accuracy_copy (priv->acc);
+	}
+
+	return ret;
 }
 
 static int
@@ -413,7 +631,7 @@ location_gps_get_last_velocity (LocationGps *self,
 
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
+	setting_retval_if_fail(VCONFKEY_LOCATION_ENABLED);
 
 	LocModGpsOps ops = priv->mod->ops;
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
@@ -426,16 +644,19 @@ static int
 location_gps_get_satellite (LocationGps *self,
 	LocationSatellite **satellite)
 {
+	int ret = LOCATION_ERROR_NOT_AVAILABLE;
 	LOCATION_LOGD("location_gps_get_satellite");
 
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
+	setting_retval_if_fail(VCONFKEY_LOCATION_ENABLED);
 
-	LocModGpsOps ops = priv->mod->ops;
-	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (ops.get_satellite, LOCATION_ERROR_NOT_AVAILABLE);
-	return ops.get_satellite(priv->mod->handler, satellite);
+	if (priv->sat) {
+		*satellite = location_satellite_copy (priv->sat);
+		ret = LOCATION_ERROR_NONE;
+	}
+	
+	return ret;
 }
 
 static int
@@ -446,7 +667,7 @@ location_gps_get_last_satellite (LocationGps *self,
 
 	LocationGpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-	setting_retval_if_fail(GPS_ENABLED);
+	setting_retval_if_fail(VCONFKEY_LOCATION_ENABLED);
 
 	LocModGpsOps ops = priv->mod->ops;
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
@@ -479,13 +700,25 @@ location_gps_init (LocationGps *self)
 	priv->is_started = FALSE;
 	priv->set_noti = FALSE;
 	priv->enabled= FALSE;
-	priv->interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
+
+	priv->pos_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
+	priv->vel_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
+	priv->sat_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
+
+	priv->pos_updated_timestamp = 0;
+	priv->vel_updated_timestamp = 0;
+	priv->sat_updated_timestamp = 0;
 
 	priv->pos = NULL;
 	priv->vel = NULL;
 	priv->acc = NULL;
+	priv->sat = NULL;
 	priv->zone_status = ZONE_STATUS_NONE;
 	priv->boundary_list = NULL;
+
+	priv->pos_timer = 0;
+	priv->vel_timer = 0;
+
 }
 
 static void
@@ -578,14 +811,30 @@ location_gps_class_init (LocationGpsClass *klass)
 			LOCATION_TYPE_POSITION,
 			G_PARAM_READABLE);
 
-	properties[PROP_UPDATE_INTERVAL] = g_param_spec_uint ("update-interval",
-			"gps update interval prop",
-			"gps update interval data",
+	properties[PROP_POS_INTERVAL] = g_param_spec_uint ("pos-interval",
+			"gps position interval prop",
+			"gps position interval data",
 			LOCATION_UPDATE_INTERVAL_MIN,
 			LOCATION_UPDATE_INTERVAL_MAX,
 			LOCATION_UPDATE_INTERVAL_DEFAULT,
 			G_PARAM_READWRITE);
 
+	properties[PROP_VEL_INTERVAL] = g_param_spec_uint ("vel-interval",
+			"gps velocity interval prop",
+			"gps velocity interval data",
+			LOCATION_UPDATE_INTERVAL_MIN,
+			LOCATION_UPDATE_INTERVAL_MAX,
+			LOCATION_UPDATE_INTERVAL_DEFAULT,
+			G_PARAM_READWRITE);
+
+	properties[PROP_SAT_INTERVAL] = g_param_spec_uint ("sat-interval",
+			"gps satellite interval prop",
+			"gps satellite interval data",
+			LOCATION_UPDATE_INTERVAL_MIN,
+			LOCATION_UPDATE_INTERVAL_MAX,
+			LOCATION_UPDATE_INTERVAL_DEFAULT,
+			G_PARAM_READWRITE);
+		;
 	properties[PROP_BOUNDARY] = g_param_spec_pointer ("boundary",
 			"gps boundary prop",
 			"gps boundary data",

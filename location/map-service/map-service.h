@@ -43,8 +43,6 @@ typedef struct _MapServicePrivate 	   MapServicePrivate;
 #define MAP_IS_SERVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass), MAP_TYPE_SERVICE))
 #define MAP_SERVICE_GET_CLASS(obj)		(G_TYPE_INSTANCE_GET_CLASS ((obj), MAP_TYPE_SERVICE, MapServiceClass))
 
-#define DEFAULT_SERVICE "decarta"
-
 #define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), MAP_TYPE_SERVICE, MapServicePrivate))
 
 struct _MapService
@@ -59,14 +57,14 @@ struct _MapServiceClass
 
 struct _MapServicePrivate {
 	LocationServiceMod* mod;
-	LocationPreference *pref;
+	LocationMapPref *pref;
 };
 
 GType map_service_get_type (void);
 
-LocationPreference *map_service_get_pref(GObject *obj);
+LocationMapPref *map_service_get_pref(GObject *obj);
 
-gboolean map_service_set_preference (GObject *obj, LocationPreference *pref);
+gboolean map_service_set_pref (GObject *obj, LocationMapPref *pref);
 
 G_END_DECLS
 

@@ -22,7 +22,7 @@
 #ifndef __LOCATION_POI_H__
 #define __LOCATION_POI_H__
 
-#include <location-types.h>
+#include <location-map-types.h>
 
 G_BEGIN_DECLS
 
@@ -80,7 +80,7 @@ LocationPOIPreference *location_poi_pref_copy (LocationPOIPreference *pref);
  * @pre #location_poi_pref_new should be called before.
  * @post None.
  * @param [in] pref - #LocationPOIPreference
- * @return #LocationPreference
+ * @return void
  * @retval NULL              if error occured
  * @see location_location_poi_pref_set_pref
  */
@@ -162,7 +162,7 @@ gboolean location_poi_pref_set_max_result (LocationPOIPreference * pref, guint m
 
 /**
  * @brief Set the sort criterion for poi service.
- * @remarks None.
+ * @remarks The previous item of the #LocationPOIPreference will be removed if an item is NULL.
  * @pre #location_poi_pref_new should be called before.
  * @post None.
  * @param [in] pref - #LocationPOIPreference
@@ -188,7 +188,7 @@ gboolean location_poi_pref_set_sort_order (LocationPOIPreference *pref, Location
 
 /**
  * @brief Set property of poi preference.
- * @remarks None.
+ * @remarks The previous value of the #LocationPOIPreference matching to key will be removed if an value is NULL.
  * @pre #location_poi_pref_new should be called before.
  * @post None.
  * @param [in] pref - #LocationPOIPreference
@@ -235,7 +235,7 @@ void location_poi_filter_free (LocationPOIFilter *filter);
 
 /**
  * @brief Set filter for poi service
- * @remarks None
+ * @remarks The previous value of the #LocationPOIFilter matching to key will be removed if an value is NULL.
  * @pre #location_poi_filter_new should be called before.
  * @post None.
  * @param [in] filter - #LocationPOIFilter

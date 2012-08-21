@@ -68,28 +68,13 @@ typedef struct{
 	LocModCpsOps ops;
 } LocationCpsMod;
 
-typedef struct{
-	GMod* gmod;
-	gpointer handler;
-	gpointer (*init)(LocModIpsOps* ops);
-	void (*shutdown)(gpointer handle);
-	LocModIpsOps ops;
-} LocationIpsMod;
-
-typedef struct{
-	GMod* gmod;
-	gpointer handler;
-	gpointer (*init)(LocModSpsOps* ops);
-	void (*shutdown)(gpointer handle);
-	LocModSpsOps ops;
-} LocationSpsMod;
-
 G_BEGIN_DECLS
 
 gboolean module_init(void);
 gpointer module_new(const char* module_name);
 void module_free(gpointer mod, const char* module_name);
 gboolean module_is_supported(const char *module_name);
+gchar *mod_get_realpath(const gchar *module_name);
 	
 G_END_DECLS
 

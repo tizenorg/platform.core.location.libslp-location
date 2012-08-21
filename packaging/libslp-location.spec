@@ -1,10 +1,9 @@
-
 Name:       libslp-location
 Summary:    Location Based Service
-Version:    0.3.34
-Release:    2
+Version:    0.3.38
+Release:    1
 Group:      System/Libraries
-License:    Apache-2.0
+License:    TBD
 Source0:    %{name}-%{version}.tar.gz
 Requires(post):  /sbin/ldconfig
 Requires(post):  /usr/bin/vconftool
@@ -15,7 +14,8 @@ BuildRequires:  pkgconfig(dbus-glib-1)
 BuildRequires:  pkgconfig(gmodule-2.0)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
-BuildRequires:  pkgconfig(json-glib-1.0)
+BuildRequires:  pkgconfig(location-appman)
+#BuildRequires:  pkgconfig(json-glib-1.0)
 
 
 %description
@@ -70,12 +70,11 @@ vconftool set -t double db/location/last/wps/Altitude "0.0" -f
 vconftool set -t double db/location/last/wps/HorAccuracy "0.0" -f
 vconftool set -t double db/location/last/wps/Speed "0.0" -f
 vconftool set -t double db/location/last/wps/Direction "0.0" -f
-vconftool set -t int db/location/last/sps/Timestamp "0" -f
-vconftool set -t double db/location/last/sps/Latitude "0.0" -f
-vconftool set -t double db/location/last/sps/Longitude "0.0" -f
-vconftool set -t double db/location/last/sps/Altitude "0.0" -f
-vconftool set -t double db/location/last/sps/HorAccuracy "0.0" -f
-vconftool set -t double db/location/last/sps/VerAccuracy "0.0" -f
+vconftool set -t int db/location/last/cps/Timestamp "0" -f
+vconftool set -t double db/location/last/cps/Latitude "0.0" -f
+vconftool set -t double db/location/last/cps/Longitude "0.0" -f
+vconftool set -t double db/location/last/cps/Altitude "0.0" -f
+vconftool set -t double db/location/last/cps/HorAccuracy "0.0" -f
 vconftool set -t int db/location/setting/GpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/AgpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/NetworkEnabled "0" -g 6514 -f

@@ -24,20 +24,12 @@
 
 #include <glib.h>
 #include <vconf.h>
-#include <vconf-keys.h>
+#include <vconf-internal-location-keys.h>
 
 /**
  * @file location-setting.h
  * @brief This file contains the definitions and functions for setting.
  */
-
-#define VCONF_LOCATION_PATH		"db/location"
-
-#define GPS_ENABLED 			VCONFKEY_LOCATION_ENABLED
-#define LOCATION_SETTING_PATH 		VCONF_LOCATION_PATH"/setting"
-#define AGPS_ENABLED 			LOCATION_SETTING_PATH"/AgpsEnabled"
-#define NETWORK_ENABLED			LOCATION_SETTING_PATH"/NetworkEnabled"
-#define SENSOR_ENABLED 			LOCATION_SETTING_PATH"/SensorEnabled"
 
 #define LOCATION_UPDATE_INTERVAL_MIN		1
 #define LOCATION_UPDATE_INTERVAL_MAX		120

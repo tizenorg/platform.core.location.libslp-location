@@ -28,13 +28,29 @@
 #include "location.h"
 #include "location-log.h"
 #include "location-setting.h"
-#include "location-ielement.h"
-#include "location-pref.h"
+#include "location-map-ielement.h"
+#include "location-map-pref.h"
+#include "location-map-service.h"
 #include "map-service.h"
 
-LocationObject *g_map_service = NULL;
+EXPORT_API LocationMapObject *
+location_map_new (const char * provider)
+{
 
-//static LocationObject *poi = NULL;
+	LocationMapObject *self = NULL;
+	self = g_object_new (MAP_TYPE_SERVICE, "provider", provider, NULL);
+	return self;
+}
+
+EXPORT_API int
+location_map_free (LocationMapObject *obj)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+
+	g_object_unref (obj);
+
+	return LOCATION_ERROR_NONE;
+}
 
 static gboolean
 is_connected_network()
@@ -54,274 +70,315 @@ is_connected_network()
 }
 
 EXPORT_API int
-location_get_position_from_address (LocationObject *obj,
+location_map_get_position_from_address (LocationMapObject *obj,
 	const LocationAddress *address,
 	GList **position_list,
 	GList **accuracy_list)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_geocode (LOCATION_IELEMENT(g_map_service), address, position_list, accuracy_list);
+
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
+
+	ret = location_map_ielement_get_geocode (LOCATION_MAP_IELEMENT(obj), address, svc_pref, position_list, accuracy_list);
+	location_map_pref_free(svc_pref);
+
+	return ret;
 }
 
 EXPORT_API int
-location_get_position_from_freeformed_address (LocationObject *obj,
+location_map_get_position_from_freeformed_address (LocationMapObject *obj,
 	const gchar *address,
 	GList **position_list,
 	GList **accuracy_list)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_get_geocode_freeform (LOCATION_IELEMENT(g_map_service), address, position_list, accuracy_list);
-}
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-EXPORT_API int
-location_get_address (LocationObject *obj,
-	LocationAddress **address,
-	LocationAccuracy **accuracy)
-{
-	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
+	ret = location_map_ielement_get_geocode_freeform (LOCATION_MAP_IELEMENT(obj), address, svc_pref, position_list, accuracy_list);
+	location_map_pref_free(svc_pref);
 
-	LocationPosition *position = NULL;
-	int ret = location_ielement_get_position(LOCATION_IELEMENT (obj), &position, accuracy);
-	if (LOCATION_ERROR_NONE != ret) return ret;
-	ret = location_ielement_get_reversegeocode (LOCATION_IELEMENT(g_map_service), position, address, accuracy);
-	location_position_free (position);
 	return ret;
 }
 
 EXPORT_API int
-location_get_address_from_position (LocationObject *obj,
+location_map_get_address (LocationMapObject *obj,
+	LocationAddress **address,
+	LocationAccuracy **accuracy)
+{
+	return LOCATION_ERROR_NOT_SUPPORTED;
+}
+
+EXPORT_API int
+location_map_get_address_from_position (LocationMapObject *obj,
 	const LocationPosition *position,
 	LocationAddress **address,
 	LocationAccuracy **accuracy)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_reversegeocode (LOCATION_IELEMENT(g_map_service), position, address, accuracy);
+
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
+
+	ret = location_map_ielement_get_reversegeocode (LOCATION_MAP_IELEMENT(obj), position, svc_pref, address, accuracy);
+	location_map_pref_free(svc_pref);
+
+	return ret;
 }
 
 EXPORT_API int
-location_get_position_from_address_async (LocationObject *obj,
+location_map_get_position_from_address_async (LocationMapObject *obj,
 	const LocationAddress *address,
 	LocationPositionCB callback,
 	gpointer userdata)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_geocode_async (LOCATION_IELEMENT(g_map_service), address, callback, userdata);
+
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
+
+	ret = location_map_ielement_get_geocode_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref, callback, userdata);
+	location_map_pref_free(svc_pref);
+
+	return ret;
 }
 
 
 EXPORT_API int
-location_get_position_from_freeformed_address_async (LocationObject *obj,
+location_map_get_position_from_freeformed_address_async (LocationMapObject *obj,
 	const gchar *address,
 	LocationPositionCB callback,
 	gpointer userdata)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
-	return location_ielement_get_geocode_freeform_async (LOCATION_IELEMENT(g_map_service), address, callback, userdata);
-}
-
-EXPORT_API int
-location_get_address_async (LocationObject *obj,
-	LocationAddressCB callback,
-	gpointer userdata)
-{
-	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPosition *position = NULL;
-	LocationAccuracy *acc = NULL;
-	int ret = location_ielement_get_position(LOCATION_IELEMENT(obj), &position, &acc);
-	if (LOCATION_ERROR_NONE != ret) return ret;
-	ret = location_ielement_get_reversegeocode_async (LOCATION_IELEMENT(g_map_service), position, callback, userdata);
-	location_position_free (position);
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
+
+	ret = location_map_ielement_get_geocode_freeform_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref, callback, userdata);
+	location_map_pref_free(svc_pref);
+
 	return ret;
 }
 
 EXPORT_API int
-location_get_address_from_position_async (LocationObject *obj,
+location_map_get_address_from_position_async (LocationMapObject *obj,
 	const LocationPosition *position,
 	LocationAddressCB callback,
 	gpointer userdata)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_get_reversegeocode_async (LOCATION_IELEMENT(g_map_service), position, callback, userdata);
+	int ret = LOCATION_ERROR_NONE;
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
+
+	ret = location_map_ielement_get_reversegeocode_async (LOCATION_MAP_IELEMENT(obj), position, svc_pref, callback, userdata);
+	location_map_pref_free(svc_pref);
+
+	return ret;
 }
 
 EXPORT_API int
-location_search_poi (LocationObject *obj,
-		const LocationPOIFilter * filter,
+location_map_search_poi (LocationMapObject *obj,
+		const LocationPOIFilter *filter,
 		const LocationPosition *position,
-		const LocationPOIPreference * pref,
+		const LocationPOIPreference *pref,
 		LocationPOICB cb, gpointer user_data, guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (filter, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (cb, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPreference *svc_pref = location_get_map_service_pref (g_map_service);
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	return location_ielement_search_poi (LOCATION_IELEMENT(g_map_service), filter, position, svc_pref, pref, cb, user_data, req_id);
+	return location_map_ielement_search_poi (LOCATION_MAP_IELEMENT(obj), filter, position, svc_pref, pref, cb, user_data, req_id);
 }
 
 EXPORT_API int
-location_search_poi_by_area (LocationObject *obj,
-		const LocationPOIFilter * filter,
-		const LocationBoundary * boundary,
-		const LocationPOIPreference * pref,
+location_map_search_poi_by_area (LocationMapObject *obj,
+		const LocationPOIFilter *filter,
+		const LocationBoundary *boundary,
+		const LocationPOIPreference *pref,
 		LocationPOICB cb, gpointer user_data, guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (filter, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (boundary, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (cb, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPreference *svc_pref = location_get_map_service_pref (g_map_service);
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	return location_ielement_search_poi_by_area (LOCATION_IELEMENT(g_map_service), filter, boundary, svc_pref, pref, cb, user_data, req_id);
+	return location_map_ielement_search_poi_by_area (LOCATION_MAP_IELEMENT(obj), filter, boundary, svc_pref, pref, cb, user_data, req_id);
 }
 
 EXPORT_API int
-location_search_poi_by_address (LocationObject *obj, const LocationPOIFilter * filter,
+location_map_search_poi_by_address (LocationMapObject *obj, const LocationPOIFilter * filter,
 				const LocationAddress * address, const LocationPOIPreference * pref,
 				LocationPOICB cb, gpointer user_data, guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (filter, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (cb, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPreference *svc_pref = location_get_map_service_pref (g_map_service);
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	return location_ielement_search_poi_by_address (LOCATION_IELEMENT(g_map_service), filter, address, svc_pref, pref, cb, user_data, req_id);
+	return location_map_ielement_search_poi_by_address (LOCATION_MAP_IELEMENT(obj), filter, address, svc_pref, pref, cb, user_data, req_id);
 }
 
 EXPORT_API int
-location_search_poi_by_freeformed_address (LocationObject *obj,
-		const LocationPOIFilter * filter,
-		const gchar * address,
-		const LocationPOIPreference * pref,
-		LocationPOICB cb, gpointer user_data, guint * req_id)
+location_map_search_poi_by_freeformed_address (LocationMapObject *obj,
+		const LocationPOIFilter *filter,
+		const gchar *address,
+		const LocationPOIPreference *pref,
+		LocationPOICB cb, gpointer user_data, guint *req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (filter, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (cb, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPreference *svc_pref = location_get_map_service_pref (g_map_service);
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	return location_ielement_search_poi_by_freeform (LOCATION_IELEMENT(g_map_service), filter, address, svc_pref, pref, cb, user_data, req_id);
+	return location_map_ielement_search_poi_by_freeform (LOCATION_MAP_IELEMENT(obj), filter, address, svc_pref, pref, cb, user_data, req_id);
 }
 
 EXPORT_API int
-location_cancel_poi_request (LocationObject *obj, guint req_id)
+location_map_cancel_poi_request (LocationMapObject *obj, guint req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_cancel_poi_request (LOCATION_IELEMENT(g_map_service), req_id);
+	return location_map_ielement_cancel_poi_request (LOCATION_MAP_IELEMENT(obj), req_id);
 }
 
 EXPORT_API int
-location_request_route (LocationObject *obj, LocationPosition *origin, LocationPosition *destination,
+location_map_request_route (LocationMapObject *obj, LocationPosition *origin, LocationPosition *destination,
 				GList *waypoint, const LocationRoutePreference * pref,
 				LocationRouteCB cb, gpointer user_data, guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (origin, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (destination, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (cb, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	LocationPreference *svc_pref = location_get_map_service_pref (g_map_service);
+	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	return location_ielement_request_route (LOCATION_IELEMENT(g_map_service), origin, destination,
+	return location_map_ielement_request_route (LOCATION_MAP_IELEMENT(obj), origin, destination,
 					waypoint, svc_pref, pref, cb, user_data, req_id);
 }
 
 EXPORT_API int
-location_cancel_route_request (LocationObject *obj, guint req_id)
+location_map_cancel_route_request (LocationMapObject *obj, guint req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_cancel_route_request (LOCATION_IELEMENT(g_map_service), req_id);
+	return location_map_ielement_cancel_route_request (LOCATION_MAP_IELEMENT(obj), req_id);
 }
 
 EXPORT_API gboolean
-location_is_supported_map_provider_capability (LocationObject *obj, LocationMapServiceType type)
+location_map_is_supported_provider_capability (LocationMapObject *obj, LocationMapServiceType type)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_is_supported_map_provider_capability (LOCATION_IELEMENT(g_map_service), type);
+	return location_map_ielement_is_supported_provider_capability (LOCATION_MAP_IELEMENT(obj), type);
 }
 
 EXPORT_API int
-location_get_map_provider_capability_key (LocationObject *obj, LocationMapServiceType type, GList **key)
+location_map_get_provider_capability_key (LocationMapObject *obj, LocationMapServiceType type, GList **key)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (key, LOCATION_ERROR_PARAMETER);
-	g_return_val_if_fail (g_map_service, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
 
-	return location_ielement_get_map_provider_capability_key (LOCATION_IELEMENT(g_map_service), type, key);
+	return location_map_ielement_get_provider_capability_key (LOCATION_MAP_IELEMENT(obj), type, key);
 }
 
-EXPORT_API LocationPreference *
-location_get_map_service_pref (LocationObject *obj)
+EXPORT_API LocationMapPref *
+location_map_get_service_pref (LocationMapObject *obj)
 {
 	g_return_val_if_fail (obj, NULL);
-	g_return_val_if_fail (g_map_service, NULL);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, NULL);
 
-	return map_service_get_pref (g_map_service);
+	return map_service_get_pref (obj);
 }
 
 EXPORT_API gboolean
-location_set_map_service_pref (LocationObject *obj, LocationPreference *pref)
+location_map_set_service_pref (LocationMapObject *obj, LocationMapPref *pref)
 {
 	g_return_val_if_fail (obj, FALSE);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (pref, FALSE);
-	g_return_val_if_fail (g_map_service, FALSE);
 
-	return map_service_set_pref (g_map_service, pref);
+	return map_service_set_pref (obj, pref);
 }
+
+EXPORT_API GList *
+location_map_get_supported_providers (LocationMapObject *obj)
+{
+	g_return_val_if_fail (obj, NULL);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
+
+	return map_service_get_supported_providers (obj);
+}
+
+EXPORT_API gchar *
+location_map_get_default_provider (LocationMapObject *obj)
+{
+	g_return_val_if_fail (obj, NULL);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
+
+	return map_service_get_default_provider(obj);
+}
+
+EXPORT_API gboolean
+location_map_set_provider (LocationMapObject *obj, gchar *provider)
+{
+	g_return_val_if_fail (obj, NULL);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
+
+	return map_service_set_provider (obj, provider);
+}
+

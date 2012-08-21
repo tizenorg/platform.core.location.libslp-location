@@ -143,7 +143,7 @@ utc_location_get_position_from_address_03()
 static void
 utc_location_get_position_from_address_04()
 {
-	LocationAddress *addr = location_address_new ("1",  "Post Street", NULL, "san jose", "ca", NULL, "95113");;
+	LocationAddress *addr = location_address_new ("1",  "Post Street", NULL, "san jose", "ca", NULL, "95113");
 	GList *acc_list = NULL;
 	ret = location_get_position_from_address(loc, addr, NULL, &acc_list);
 	location_address_free (addr);

@@ -26,8 +26,6 @@
 #include "location-signaling-util.h"
 #include "location-log.h"
 
-#define POS_EXPIRATION_TIME		9	/* sec */
-
 void
 enable_signaling (LocationObject *obj,
 	guint32 signals[LAST_SIGNAL],
@@ -53,12 +51,13 @@ void
 position_signaling (LocationObject *obj,
 	guint32 signals[LAST_SIGNAL],
 	gboolean *prev_enabled,
-	guint interval,
+	int interval,
+	gboolean emit,
+	guint *updated_timestamp,
 	LocationPosition **prev_pos,
 	LocationAccuracy **prev_acc,
 	GList *prev_bound,
 	ZoneStatus *zone_status,
-	gboolean enabled,
 	const LocationPosition *pos,
 	const LocationAccuracy *acc)
 {
@@ -70,65 +69,58 @@ position_signaling (LocationObject *obj,
 
 	int index = 0;
 	gboolean is_inside = FALSE;
-	guint updated_timestamp = 0;
 	GList *boundary_list = prev_bound;
 	LocationBoundary *boundary = NULL;
 
-	if(!*prev_pos || !*prev_acc || location_accuracy_level_compare(*prev_acc, acc) != -1 ||
-			(pos->timestamp - (*prev_pos)->timestamp) > POS_EXPIRATION_TIME) {
+	if (!pos->timestamp)	return;
 
-		if(*prev_pos) {
-			updated_timestamp = (*prev_pos)->updated_timestamp;
-			location_position_free(*prev_pos);
-		}
-		if(*prev_acc) location_accuracy_free(*prev_acc);
-
-		if(!updated_timestamp || pos->timestamp - updated_timestamp >= interval) {
-			LOCATION_LOGD("Signal emit: POSITION SERVICE_UPDATED");
-			g_signal_emit(obj, signals[SERVICE_UPDATED], 0, POSITION_UPDATED, pos, acc);
-			updated_timestamp = pos->timestamp;
-		}
-
-		if(boundary_list) {
-			while((boundary = (LocationBoundary *)g_list_nth_data(boundary_list, index))!= NULL) {
-
-				is_inside = location_boundary_if_inside(boundary, pos);
-				if(is_inside) {
-					break;
-				}
-				index++;
-			}
-
-			if(is_inside) {
-				if(*zone_status != ZONE_STATUS_IN) {
-					LOCATION_LOGD("Signal emit: ZONE IN");
-					g_signal_emit(obj, signals[ZONE_IN], 0, NULL, pos, acc);
-					*zone_status = ZONE_STATUS_IN;
-				}
-			}
-			else {
-				if (*zone_status != ZONE_STATUS_OUT) {
-					LOCATION_LOGD("Signal emit : ZONE_OUT");
-					g_signal_emit(obj, signals[ZONE_OUT], 0, NULL, pos, acc);
-					*zone_status = ZONE_STATUS_OUT;
-				}
-			}
-
-		}
-	}
+	if (*prev_pos) location_position_free (*prev_pos);
+	if (*prev_acc) location_accuracy_free (*prev_acc);
 
 	*prev_pos = location_position_copy(pos);
 	*prev_acc = location_accuracy_copy(acc);
-	(*prev_pos)->updated_timestamp = updated_timestamp;
+	LOCATION_LOGD("timestamp[%d], lat [%f], lon [%f]", (*prev_pos)->timestamp, (*prev_pos)->latitude, (*prev_pos)->longitude);
+
+	if (emit && pos->timestamp - *updated_timestamp >= interval) {
+		LOCATION_LOGD("POSITION SERVICE_UPDATED");
+		g_signal_emit(obj, signals[SERVICE_UPDATED], 0, POSITION_UPDATED, pos, acc);
+		*updated_timestamp = pos->timestamp;
+	}
+
+	if(boundary_list) {
+		while((boundary = (LocationBoundary *)g_list_nth_data(boundary_list, index))!= NULL) {
+			is_inside = location_boundary_if_inside(boundary, pos);
+			if(is_inside) {
+				break;
+			}
+			index++;
+		}
+
+		if(is_inside) {
+			if(*zone_status != ZONE_STATUS_IN) {
+				LOCATION_LOGD("Signal emit: ZONE IN");
+				g_signal_emit(obj, signals[ZONE_IN], 0, NULL, pos, acc);
+				*zone_status = ZONE_STATUS_IN;
+			}
+		}
+		else {
+			if (*zone_status != ZONE_STATUS_OUT) {
+				LOCATION_LOGD("Signal emit : ZONE_OUT");
+				g_signal_emit(obj, signals[ZONE_OUT], 0, NULL, pos, acc);
+				*zone_status = ZONE_STATUS_OUT;
+			}
+		}
+	}
 }
 
 void
 velocity_signaling (LocationObject *obj,
 	guint32 signals[LAST_SIGNAL],
 	gboolean *prev_enabled,
-	guint interval,
+	int interval,
+	gboolean emit,
+	guint *updated_timestamp,
 	LocationVelocity **prev_vel,
-	gboolean enabled,
 	const LocationVelocity *vel,
 	const LocationAccuracy *acc)
 {
@@ -136,64 +128,42 @@ velocity_signaling (LocationObject *obj,
 	g_return_if_fail(signals);
 	g_return_if_fail(vel);
 
-	guint updated_timestamp = 0;
+	if (!vel->timestamp) return;
 
-	if(*prev_vel) {
-		updated_timestamp = (*prev_vel)->updated_timestamp;
-		if(!location_velocity_equal(*prev_vel, vel)) {
-			location_velocity_free (*prev_vel);
-		}
-	}
-
+	if (*prev_vel) location_velocity_free (*prev_vel);
 	*prev_vel = location_velocity_copy (vel);
+	LOCATION_LOGD("timestamp[%d]", (*prev_vel)->timestamp);
 
-	if(!updated_timestamp || vel->timestamp - updated_timestamp >= interval) {
-
-		LOCATION_LOGD ("Signal emit: VELOCITY SERVICE_UPDATED");
-		LocationVelocity *temp_vel = location_velocity_copy (*prev_vel);
-		LocationAccuracy *temp_acc = location_accuracy_copy(acc);
-
-		g_signal_emit (obj, signals[SERVICE_UPDATED], 0, VELOCITY_UPDATED, temp_vel, temp_acc);
-
-		(*prev_vel)->updated_timestamp = vel->timestamp;
-
-		location_velocity_free(temp_vel);
-		location_accuracy_free(temp_acc);
+	if (emit && vel->timestamp - *updated_timestamp >= interval) {
+		LOCATION_LOGD("VELOCITY SERVICE_UPDATED");
+		g_signal_emit(obj, signals[SERVICE_UPDATED], 0, VELOCITY_UPDATED, vel, acc);
+		*updated_timestamp = vel->timestamp;
 	}
-	else {
-		(*prev_vel)->updated_timestamp = updated_timestamp;
-	}
-
 }
 
 void
 satellite_signaling(LocationObject *obj,
 	guint32 signals[LAST_SIGNAL],
 	gboolean *prev_enabled,
-	guint interval,
-	guint *sat_timestamp,
+	int interval,
+	gboolean emit,
+	guint *updated_timestamp,
 	LocationSatellite **prev_sat,
-	gboolean enabled,
 	const LocationSatellite *sat)
 {
 	g_return_if_fail(obj);
 	g_return_if_fail(signals);
 	g_return_if_fail(sat);
 
-	if (*prev_sat) {
-		location_satellite_free(*prev_sat);
-	}
+	if (!sat->timestamp) return;
 
+	if (*prev_sat) location_satellite_free (*prev_sat);
 	*prev_sat = location_satellite_copy (sat);
-	if (!(*sat_timestamp) || sat->timestamp - *sat_timestamp > interval) {
 
-		LOCATION_LOGD ("Signal emit: SATELLITE SERVICE_UPDATED");
-		LocationSatellite *temp_sat = location_satellite_copy (sat);
-
-		g_signal_emit (obj, signals[SERVICE_UPDATED], 0, SATELLITE_UPDATED, temp_sat, NULL);
-
-		*sat_timestamp = sat->timestamp;
-
-		location_satellite_free(temp_sat);
+	if (emit && sat->timestamp - *updated_timestamp >= interval) {
+		LOCATION_LOGD("SATELLITE SERVICE_UPDATED");
+		g_signal_emit(obj, signals[SERVICE_UPDATED], 0, SATELLITE_UPDATED, sat, NULL);
+		*updated_timestamp = sat->timestamp;
 	}
+
 }

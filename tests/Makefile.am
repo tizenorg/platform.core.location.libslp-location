@@ -1,11 +1,10 @@
 dir_location = $(top_srcdir)/location
-noinst_PROGRAMS = location-api-test gps-test wps-test hybrid-test ips-test cps-test sps-test\
-				  position-sample-gps velocity-sample nmea-sample satellite-sample property-sample zone-sample address-sample
+noinst_PROGRAMS = location-api-test gps-test wps-test hybrid-test cps-test\
+				  position-sample-gps velocity-sample nmea-sample satellite-sample property-sample zone-sample address-sample map-service-test
 
 gps_test_SOURCES =  gps-test.c
 wps_test_SOURCES =  wps-test.c
 hybrid_test_SOURCES =  hybrid-test.c
-ips_test_SOURCES =  ips-test.c
 cps_test_SOURCES =  cps-test.c
 position_sample_gps_SOURCES =   position-sample-gps.c
 velocity_sample_SOURCES = velocity-sample.c
@@ -15,6 +14,7 @@ property_sample_SOURCES = property-sample.c
 zone_sample_SOURCES = zone-sample.c
 address_sample_SOURCES = address-sample.c
 location_api_test_SOURCES = location-api-test.c location-api-test-util.c
+map_service_test_SOURCES = map-service-test.c
 
 LDADD = \
 		$(dir_location)/libSLP-location.la\
