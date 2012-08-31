@@ -179,7 +179,7 @@ cps_position_cb (gboolean enabled,
 	}
 
 	enable_signaling(self, signals, &(priv->enabled), enabled, pos->status);
-	position_signaling(self, signals, &(priv->enabled), priv->pos_interval, FALSE, &(priv->pos_updated_timestamp), &(priv->pos), &(priv->acc), priv->boundary_list, &(priv->zone_status), pos, acc);
+	position_signaling(self, signals, &(priv->enabled), priv->pos_interval, FALSE, &(priv->pos_updated_timestamp), &(priv->pos), priv->boundary_list, &(priv->zone_status), pos, acc);
 }
 
 static void
@@ -191,7 +191,7 @@ cps_velocity_cb(gboolean enabled,
 	LOCATION_LOGD("cps_velocity_cb");
 	g_return_if_fail(self);
 	LocationCpsPrivate* priv = GET_PRIVATE(self);
-	velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, FALSE, &(priv->vel_updated_timestamp), &(priv->vel), vel, acc);
+	velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, FALSE, &(priv->vel_updated_timestamp), &(priv->vel), &(priv->acc), vel, acc);
 }
 
 static void

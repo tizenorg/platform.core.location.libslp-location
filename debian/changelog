@@ -1,3 +1,10 @@
+libslp-location (0.3.39-1) unstable; urgency=low
+
+  * Fix a crash after changes that velocity is updated before position.
+  * Tag: libslp-location_0.3.39-1
+
+ -- Minjune Kim <sena06.kim@samsung.com>  Fri, 31 Aug 2012 19:02:39 +0900
+
 libslp-location (0.3.38-1) unstable; urgency=low
 
   * Add the parameter, LocationMapPref in Geocoder

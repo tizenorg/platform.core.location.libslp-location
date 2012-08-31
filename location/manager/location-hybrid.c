@@ -308,10 +308,10 @@ hybrid_service_updated (GObject *obj,
 	if (hybrid_compare_g_type_method(priv, g_type)) {
 		LocationAccuracy *acc = (LocationAccuracy*)accuracy;
 		if (type == POSITION_UPDATED) {
-			position_signaling(self, signals, &(priv->enabled), priv->pos_interval, TRUE, &(priv->pos_updated_timestamp), &(priv->pos), &(priv->acc), priv->boundary_list, &(priv->zone_status), pos, acc);
+			position_signaling(self, signals, &(priv->enabled), priv->pos_interval, TRUE, &(priv->pos_updated_timestamp), &(priv->pos), priv->boundary_list, &(priv->zone_status), pos, acc);
 			LOCATION_LOGW("Position updated. timestamp [%d]", priv->pos->timestamp);
 		} else if (type == VELOCITY_UPDATED) {
-			velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, TRUE, &(priv->vel_updated_timestamp), &(priv->vel), vel, acc);
+			velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, TRUE, &(priv->vel_updated_timestamp), &(priv->vel), &(priv->acc), vel, acc);
 			LOCATION_LOGW("Velocity updated. timestamp [%d]", priv->vel->timestamp);
 		}
 

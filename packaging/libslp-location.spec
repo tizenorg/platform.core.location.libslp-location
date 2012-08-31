@@ -1,6 +1,6 @@
 Name:       libslp-location
 Summary:    Location Based Service
-Version:    0.3.38
+Version:    0.3.39
 Release:    1
 Group:      System/Libraries
 License:    TBD

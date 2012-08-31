@@ -42,13 +42,13 @@ void enable_signaling (LocationObject *obj,	guint32 signals[LAST_SIGNAL], gboole
 
 void position_signaling (LocationObject *obj, guint32 signals[LAST_SIGNAL],
 		gboolean *prev_enabled, int interval, gboolean emit,
-		guint *updated_interval, LocationPosition **prev_pos, LocationAccuracy **prev_acc,
+		guint *updated_interval, LocationPosition **prev_pos,
 		GList *prev_bound, ZoneStatus *zone_status,
 		const LocationPosition *pos, const LocationAccuracy *acc);
 
 void velocity_signaling (LocationObject* obj, guint32 signals[LAST_SIGNAL],
 		gboolean *prev_enabled, int interval, gboolean emit,
-		guint *updated_timestamp, LocationVelocity **prev_vel,
+		guint *updated_timestamp, LocationVelocity **prev_vel, LocationAccuracy **prev_acc,
 		const LocationVelocity *vel, const LocationAccuracy *acc);
 
 void satellite_signaling(LocationObject *obj, guint32 signals[LAST_SIGNAL],

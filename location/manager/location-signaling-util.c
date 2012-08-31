@@ -55,7 +55,6 @@ position_signaling (LocationObject *obj,
 	gboolean emit,
 	guint *updated_timestamp,
 	LocationPosition **prev_pos,
-	LocationAccuracy **prev_acc,
 	GList *prev_bound,
 	ZoneStatus *zone_status,
 	const LocationPosition *pos,
@@ -75,10 +74,8 @@ position_signaling (LocationObject *obj,
 	if (!pos->timestamp)	return;
 
 	if (*prev_pos) location_position_free (*prev_pos);
-	if (*prev_acc) location_accuracy_free (*prev_acc);
 
 	*prev_pos = location_position_copy(pos);
-	*prev_acc = location_accuracy_copy(acc);
 	LOCATION_LOGD("timestamp[%d], lat [%f], lon [%f]", (*prev_pos)->timestamp, (*prev_pos)->latitude, (*prev_pos)->longitude);
 
 	if (emit && pos->timestamp - *updated_timestamp >= interval) {
@@ -121,6 +118,7 @@ velocity_signaling (LocationObject *obj,
 	gboolean emit,
 	guint *updated_timestamp,
 	LocationVelocity **prev_vel,
+	LocationAccuracy **prev_acc,
 	const LocationVelocity *vel,
 	const LocationAccuracy *acc)
 {
@@ -131,7 +129,10 @@ velocity_signaling (LocationObject *obj,
 	if (!vel->timestamp) return;
 
 	if (*prev_vel) location_velocity_free (*prev_vel);
+	if (*prev_acc) location_accuracy_free (*prev_acc);
+
 	*prev_vel = location_velocity_copy (vel);
+	*prev_acc = location_accuracy_copy (acc);
 	LOCATION_LOGD("timestamp[%d]", (*prev_vel)->timestamp);
 
 	if (emit && vel->timestamp - *updated_timestamp >= interval) {
