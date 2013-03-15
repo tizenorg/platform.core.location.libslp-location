@@ -367,20 +367,18 @@ location_hybrid_start (LocationHybrid *self)
 {
 	LOCATION_LOGD("location_hybrid_start");
 
-	int ret_gps = LOCATION_ERROR_NONE;
-	int ret_wps = LOCATION_ERROR_NONE;
+	int ret_gps = LOCATION_ERROR_NOT_AVAILABLE;
+	int ret_wps = LOCATION_ERROR_NOT_AVAILABLE;
 
 	LocationHybridPrivate* priv = GET_PRIVATE(self);
 	if (priv->is_started == TRUE)
 		return LOCATION_ERROR_NONE;
 
-	if(priv->gps) ret_gps = location_start(priv->gps);
-	if(priv->wps) ret_wps = location_start(priv->wps);
+	if (priv->gps) ret_gps = location_start(priv->gps);
+	if (priv->wps) ret_wps = location_start(priv->wps);
 
-	if (ret_gps != LOCATION_ERROR_NONE &&
-			ret_wps != LOCATION_ERROR_NONE) {
-		if (ret_gps == LOCATION_ERROR_SECURITY_DENIED ||
-				ret_wps == LOCATION_ERROR_SECURITY_DENIED) {
+	if (ret_gps != LOCATION_ERROR_NONE && ret_wps != LOCATION_ERROR_NONE) {
+		if (ret_gps == LOCATION_ERROR_SECURITY_DENIED || ret_wps == LOCATION_ERROR_SECURITY_DENIED) {
 			return LOCATION_ERROR_SECURITY_DENIED;
 		} else if (ret_gps == LOCATION_ERROR_SETTING_OFF && ret_wps == LOCATION_ERROR_SETTING_OFF) {
 			return LOCATION_ERROR_SETTING_OFF;
@@ -396,7 +394,6 @@ location_hybrid_start (LocationHybrid *self)
 		priv->set_noti = TRUE;
 	}
 
-
 	return LOCATION_ERROR_NONE;
 }
 
@@ -406,19 +403,18 @@ location_hybrid_stop (LocationHybrid *self)
 	LOCATION_LOGD("location_hybrid_stop");
 
 	LocationHybridPrivate* priv = GET_PRIVATE(self);
-	if( priv->is_started == FALSE)
+	if (priv->is_started == FALSE)
 		return LOCATION_ERROR_NONE;
 
-	int ret_gps = LOCATION_ERROR_NONE;
-	int ret_wps = LOCATION_ERROR_NONE;
+	int ret_gps = LOCATION_ERROR_NOT_AVAILABLE;
+	int ret_wps = LOCATION_ERROR_NOT_AVAILABLE;
 
-	if(priv->gps) ret_gps = location_stop(priv->gps);
-	if(priv->wps) ret_wps = location_stop(priv->wps);
+	if (priv->gps) ret_gps = location_stop(priv->gps);
+	if (priv->wps) ret_wps = location_stop(priv->wps);
 
 	priv->is_started = FALSE;
 
-	if (ret_gps != LOCATION_ERROR_NONE &&
-		ret_wps != LOCATION_ERROR_NONE)
+	if (ret_gps != LOCATION_ERROR_NONE && ret_wps != LOCATION_ERROR_NONE)
 		return LOCATION_ERROR_NOT_AVAILABLE;
 
 	if (priv->pos_timer) g_source_remove (priv->pos_timer);
@@ -771,7 +767,6 @@ location_hybrid_get_last_position_ext (LocationHybrid *self,
 	return ret;
 }
 
-
 static int
 location_hybrid_get_velocity (LocationHybrid *self,
 	LocationVelocity **velocity,
@@ -868,8 +863,9 @@ location_hybrid_get_last_satellite (LocationHybrid *self,
 	int ret = LOCATION_ERROR_NONE;
 	LocationHybridPrivate *priv = GET_PRIVATE (self);
 
-	if (priv->gps) ret = location_get_last_satellite (priv->gps, satellite);
-	else {
+	if (priv->gps) {
+		 ret = location_get_last_satellite (priv->gps, satellite);
+	} else {
 		*satellite = NULL;
 		ret = LOCATION_ERROR_NOT_AVAILABLE;
 	}
@@ -1063,5 +1059,4 @@ location_hybrid_class_init (LocationHybridClass *klass)
 	g_object_class_install_properties (gobject_class,
 			PROP_MAX,
 			properties);
-
 }

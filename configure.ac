@@ -8,6 +8,7 @@ AC_CONFIG_SRCDIR([location])
 AM_INIT_AUTOMAKE([1.10.2 foreign -Wall -Werror])
 
 # Check programs for making executable
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL

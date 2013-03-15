@@ -1,6 +1,6 @@
 Name:       libslp-location
 Summary:    Location Based Service
-Version:    0.4.4
+Version:    0.4.6
 Release:    1
 Group:      System/Libraries
 License:    Apache Licensc, Version 2.0
@@ -38,19 +38,13 @@ Location Based Service Development Package
 %build
 
 ./autogen.sh
-./configure --prefix=%{_prefix} --enable-dlog --enable-debug
+%configure  --enable-dlog --enable-debug
 
-# Call make instruction with smp support
 make %{?jobs:-j%jobs}
 
 
 %install
-rm -rf %{buildroot}
 %make_install
-
-
-%clean
-rm -rf %{buildroot}
 
 
 %post

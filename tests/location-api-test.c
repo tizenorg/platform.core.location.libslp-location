@@ -406,8 +406,6 @@ static void print_menu()
 	g_printf("10.  location_is_supported_method\n");
 	g_printf("11.  location_is_enabled_gps\n");
 	g_printf("99.  location_send_command\n");
-	g_printf("99a.  location_send_command(get_auth)\n");
-	g_printf("99b.  location_send_command(add_to_list)\n");
 	g_printf("a?.  signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
 	g_printf("b?.  disconnect signals:(1)'service-enabled',(2)'service-disabled',(3)'service-updated',(4)'zone-in',(5)'zone-out'\n");
 	g_printf("c?. (1)Set boundary, (2)Get boundary, (3) Remove boundary, (4) Remove all boundaries, (5)Set device name, \n");

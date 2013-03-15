@@ -236,7 +236,6 @@ location_get_satellite (LocationObject *obj, LocationSatellite **satellite)
 	g_return_val_if_fail (satellite, LOCATION_ERROR_PARAMETER);
 
 	int ret = LOCATION_ERROR_NONE;
-
 	ret = location_ielement_get_satellite (LOCATION_IELEMENT(obj), satellite);
 	if (ret != LOCATION_ERROR_NONE) LOCATION_LOGD("Fail to get_satellite. Error [%d]", ret);
 
@@ -341,30 +340,28 @@ EXPORT_API int
 location_send_command(const char *cmd)
 {
 	g_return_val_if_fail (cmd, LOCATION_ERROR_PARAMETER);
-	int ret = 0;
+	int ret = LOCATION_ERROR_NOT_AVAILABLE;
 
 	if (0 == g_strcmp0(cmd, "ADD_APPLIST")) {
-		ret = location_application_add_app_to_applist ();
-		if (ret == FALSE) {
+		if (location_application_add_app_to_applist () == FALSE) {
 			LOCATION_LOGD("Fail to add to applist");
-			return LOCATION_ERROR_UNKNOWN;
+			ret = LOCATION_ERROR_UNKNOWN;
+		} else {
+			ret = LOCATION_ERROR_NONE;
 		}
 	} else if (0 == g_strcmp0(cmd, "ACCESSIBILITY:1")) {
 		ret = location_set_accessibility_state(LOCATION_ACCESS_ALLOWED);
 		if (ret != LOCATION_ERROR_NONE) {
 			LOCATION_LOGD("Fail to set ACCESSIBILITY:1 [ret = %d]", ret);
-			return ret;
 		}
 	} else if (0 == g_strcmp0(cmd, "ACCESSIBILITY:0")) {
 		ret = location_set_accessibility_state(LOCATION_ACCESS_DENIED);
 		if (ret != LOCATION_ERROR_NONE) {
 			LOCATION_LOGD("Fail to set ACCESSIBILITY:0 [ret = %d]", ret);
-			return ret;
 		}
 	} else {
 		LOCATION_LOGD("Invalid CMD[%s]", cmd);
 	}
 
-	return LOCATION_ERROR_NONE;
+	return ret;
 }
-

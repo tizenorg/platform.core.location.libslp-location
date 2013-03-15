@@ -17,9 +17,9 @@ liblocation_manager_la_SOURCES = \
 							location-satellite.c  \
 							location-signaling-util.c \
 							location-common-util.c \
-							location-gps.c       \
-							location-wps.c       \
-							location-cps.c       \
+							location-gps.c \
+							location-wps.c \
+							location-cps.c \
 							location-hybrid.c
 
 liblocation_manager_la_CFLAGS = \

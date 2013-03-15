@@ -88,15 +88,13 @@ _position_timeout_cb (gpointer data)
 
 	if (priv->pos) {
 		pos = location_position_copy(priv->pos);
-	}
-	else {
+	} else {
 		pos = location_position_new (0, 0.0, 0.0, 0.0, LOCATION_STATUS_NO_FIX);
 	}
 
 	if (priv->acc) {
 		acc = location_accuracy_copy (priv->acc);
-	}
-	else {
+	} else {
 		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
 	}
 
@@ -121,15 +119,13 @@ _velocity_timeout_cb (gpointer data)
 
 	if (priv->vel) {
 		vel = location_velocity_copy(priv->vel);
-	}
-	else {
+	} else {
 		vel = location_velocity_new (0, 0.0, 0.0, 0.0);
 	}
 
 	if (priv->acc) {
 		acc = location_accuracy_copy (priv->acc);
-	}
-	else {
+	} else {
 		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
 	}
 
@@ -256,8 +252,7 @@ location_wps_start (LocationWps *self)
 
 	if (!location_setting_get_int(VCONFKEY_LOCATION_NETWORK_ENABLED)) {
 		ret = LOCATION_ERROR_SETTING_OFF;
-	}
-	else {
+	} else {
 		ret = priv->mod->ops.start (priv->mod->handler, wps_status_cb, wps_position_ext_cb, NULL, self);
 		if (ret == LOCATION_ERROR_NONE) {
 			priv->is_started = TRUE;
@@ -516,12 +511,10 @@ location_wps_get_last_position (LocationWps *self,
 {
 	LOCATION_LOGD("location_wps_get_last_position");
 
-	/* Do not need to check VCONFKEY_LOCATION_ENABLED and VCONFKEY_LOCATION_NETWORK_ENABLED */
-
 	LocationWpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 
-	LocationError ret = LOCATION_ERROR_NONE;
+	int ret = LOCATION_ERROR_NONE;
 	LocationVelocity *_velocity = NULL;
 
 	LocModWpsOps ops = priv->mod->ops;
@@ -529,7 +522,7 @@ location_wps_get_last_position (LocationWps *self,
 	g_return_val_if_fail (ops.get_last_position, LOCATION_ERROR_NOT_AVAILABLE);
 
 	ret = ops.get_last_position(priv->mod->handler, position, &_velocity, accuracy);
-	if (!_velocity) location_velocity_free (_velocity);
+	if (_velocity) location_velocity_free(_velocity);
 
 	return ret;
 }
@@ -542,8 +535,6 @@ location_wps_get_last_position_ext (LocationWps *self,
 {
 	LOCATION_LOGD("location_wps_get_last_position_ext");
 
-	/* Do not need to check VCONFKEY_LOCATION_ENABLED and VCONFKEY_LOCATION_NETWORK_ENABLED */
-
 	LocationWpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 
@@ -552,7 +543,6 @@ location_wps_get_last_position_ext (LocationWps *self,
 	g_return_val_if_fail (ops.get_last_position, LOCATION_ERROR_NOT_AVAILABLE);
 
 	return ops.get_last_position(priv->mod->handler, position, velocity, accuracy);
-
 }
 
 
@@ -590,12 +580,10 @@ location_wps_get_last_velocity (LocationWps *self,
 {
 	LOCATION_LOGD("location_wps_get_last_velocity");
 
-	/* Do not need to check VCONFKEY_LOCATION_ENABLED and VCONFKEY_LOCATION_NETWORK_ENABLED */
-
 	LocationWpsPrivate *priv = GET_PRIVATE (self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 
-	LocationError ret = LOCATION_ERROR_NONE;
+	int ret = LOCATION_ERROR_NONE;
 	LocationPosition *_position = NULL;
 
 	LocModWpsOps ops = priv->mod->ops;

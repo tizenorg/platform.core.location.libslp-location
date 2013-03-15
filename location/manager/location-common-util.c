@@ -33,7 +33,6 @@
 #include "location-setting.h"
 #include "location-log.h"
 
-
 int location_application_get_authority (void)
 {
 	pid_t pid = getpid();
@@ -297,7 +296,6 @@ int set_prop_boundary(GList **prev_boundary_priv_list, GList *new_boundary_priv_
 	return LOCATION_ERROR_NONE;
 }
 
-
 int set_prop_removal_boundary(GList **prev_boundary_list, LocationBoundary* boundary)
 {
 	g_return_val_if_fail(*prev_boundary_list, LOCATION_ERROR_PARAMETER);
@@ -311,7 +309,6 @@ int set_prop_removal_boundary(GList **prev_boundary_list, LocationBoundary* boun
 	if (check_list) {
 		LOCATION_LOGD("Found");
 		*prev_boundary_list = g_list_delete_link(*prev_boundary_list, check_list);
-		g_slice_free(LocationBoundaryPrivate, remove_priv);
 	}
 
 	if (g_list_length(*prev_boundary_list) == 0 ) {
@@ -331,4 +328,3 @@ void free_boundary_list (gpointer data)
 	location_boundary_free(priv->boundary);
 	g_slice_free(LocationBoundaryPrivate, priv);
 }
-

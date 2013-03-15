@@ -61,17 +61,19 @@ location_accuracy_free (LocationAccuracy* accuracy)
 }
 
 static int
-comp_int(int a, int b){
+comp_int(int a, int b)
+{
 	if (a < b) return -1;
 	if (a == b) return 0;
 	return 1;
 }
 
 static int
-comp_double_reverse(double a, double b) {
-        if (a > b) return -1;
-        else if (a == b) return 0;
-        return 1;
+comp_double_reverse(double a, double b)
+{
+	if (a > b) return -1;
+	else if (a == b) return 0;
+	return 1;
 }
 
 int
@@ -100,6 +102,6 @@ location_accuracy_copy (const LocationAccuracy *accuracy)
 {
 	g_return_val_if_fail(accuracy, NULL);
 	return location_accuracy_new(accuracy->level,
-								accuracy->horizontal_accuracy,
-								accuracy->vertical_accuracy);
+				accuracy->horizontal_accuracy,
+				accuracy->vertical_accuracy);
 }

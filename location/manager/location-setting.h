@@ -44,16 +44,12 @@ gint location_setting_add_notify(const gchar* path, SettingCB setting_cb, gpoint
 gint location_setting_ignore_notify(const gchar* path, SettingCB setting_cb);
 
 #define setting_retval_if_fail(path) {\
-	if(!location_setting_get_int(path)){\
+	int val = location_setting_get_int(path);\
+	if (val == -1){\
 		return LOCATION_ERROR_UNKNOWN;\
+	} else if (val == 0) {\
+		return LOCATION_ERROR_SETTING_OFF;\
 	}\
 }
-
-#define setting_ret_if_fail(path) {\
-	if(!location_setting_get_int(path)){\
-		return;\
-	}\
-}
-
 
 #endif

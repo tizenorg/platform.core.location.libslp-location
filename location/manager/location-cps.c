@@ -64,14 +64,13 @@ enum {
 static guint32 signals[LAST_SIGNAL] = {0, };
 static GParamSpec *properties[PROP_MAX] = {NULL, };
 
-
 #define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), LOCATION_TYPE_CPS, LocationCpsPrivate))
 
 static void location_ielement_interface_init (LocationIElementInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (LocationCps, location_cps, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (LOCATION_TYPE_IELEMENT,
-                         location_ielement_interface_init));
+			G_IMPLEMENT_INTERFACE (LOCATION_TYPE_IELEMENT,
+			location_ielement_interface_init));
 
 static gboolean
 _position_timeout_cb (gpointer data)
@@ -85,15 +84,13 @@ _position_timeout_cb (gpointer data)
 
 	if (priv->pos) {
 		pos = location_position_copy(priv->pos);
-	}
-	else {
+	} else {
 		pos = location_position_new (0, 0.0, 0.0, 0.0, LOCATION_STATUS_NO_FIX);
 	}
 
 	if (priv->acc) {
 		acc = location_accuracy_copy (priv->acc);
-	}
-	else {
+	} else {
 		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
 	}
 
@@ -118,15 +115,13 @@ _velocity_timeout_cb (gpointer data)
 
 	if (priv->vel) {
 		vel = location_velocity_copy(priv->vel);
-	}
-	else {
+	} else {
 		vel = location_velocity_new (0, 0.0, 0.0, 0.0);
 	}
 
 	if (priv->acc) {
 		acc = location_accuracy_copy (priv->acc);
-	}
-	else {
+	} else {
 		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
 	}
 
@@ -228,8 +223,7 @@ location_setting_cps_cb (keynode_t *key,
 				__reset_pos_data_from_priv(priv);
 			}
 		}
-	}
-	else {
+	} else {
 		if (1 == location_setting_get_int (VCONFKEY_LOCATION_NETWORK_ENABLED) && priv->mod->ops.start && !priv->is_started) {
 			LOCATION_LOGD("location resumed by setting");
 			ret = priv->mod->ops.start (priv->mod->handler, cps_status_cb, cps_position_ext_cb, NULL, self);
@@ -308,7 +302,7 @@ location_cps_set_property (GObject *object,
 	switch (property_id) {
 		case PROP_BOUNDARY:{
 			GList *boundary_list = (GList *)g_list_copy(g_value_get_pointer(value));
-			ret	= set_prop_boundary(&priv->boundary_list, boundary_list);
+			ret = set_prop_boundary(&priv->boundary_list, boundary_list);
 			if(ret != 0) LOCATION_LOGD("Set boundary. Error[%d]", ret);
 			break;
 		}
@@ -326,8 +320,7 @@ location_cps_set_property (GObject *object,
 					priv->pos_interval = interval;
 				else
 					priv->pos_interval = (guint) LOCATION_UPDATE_INTERVAL_MAX;
-			}
-			else {
+			} else {
 				priv->pos_interval = (guint) LOCATION_UPDATE_INTERVAL_DEFAULT;
 			}
 
@@ -346,8 +339,7 @@ location_cps_set_property (GObject *object,
 					priv->vel_interval = interval;
 				else
 					priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
-			}
-			else
+			} else
 				priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
 
 			if (priv->vel_timer) {
@@ -400,12 +392,11 @@ location_cps_start (LocationCps *self)
 
 	if (priv->is_started == TRUE) return LOCATION_ERROR_NONE;
 
-	int ret = LOCATION_ERROR_NONE;
+	int ret = LOCATION_ERROR_NOT_AVAILABLE;
 
 	if (!location_setting_get_int (VCONFKEY_LOCATION_NETWORK_ENABLED)) {
 		ret = LOCATION_ERROR_SETTING_OFF;
-	}
-	else {
+	} else {
 		ret = priv->mod->ops.start (priv->mod->handler, cps_status_cb, cps_position_ext_cb, NULL, self);
 		if (ret == LOCATION_ERROR_NONE) {
 			priv->is_started = TRUE;
@@ -511,7 +502,6 @@ location_cps_get_position_ext (LocationCps *self,
 	return ret;
 }
 
-
 static int
 location_cps_get_last_position (LocationCps *self,
 		LocationPosition **position,
@@ -519,12 +509,10 @@ location_cps_get_last_position (LocationCps *self,
 {
 	LOCATION_LOGD("location_cps_get_last_position");
 
-	/* Do not need to check GPS_ENABLED and NETWORK_ENABLED */
-
 	LocationCpsPrivate *priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 
-	LocationError ret = LOCATION_ERROR_NONE;
+	int ret = LOCATION_ERROR_NONE;
 	LocationVelocity *_velocity = NULL;
 
 	LocModCpsOps ops = priv->mod->ops;
@@ -532,7 +520,7 @@ location_cps_get_last_position (LocationCps *self,
 	g_return_val_if_fail (ops.get_last_position, LOCATION_ERROR_NOT_AVAILABLE);
 
 	ret = ops.get_last_position (priv->mod->handler, position, &_velocity, accuracy);
-	if (!_velocity) location_velocity_free (_velocity);
+	if (_velocity) location_velocity_free(_velocity);
 
 	return ret;
 }
@@ -543,14 +531,10 @@ location_cps_get_last_position_ext (LocationCps *self,
 		LocationVelocity **velocity,
 		LocationAccuracy **accuracy)
 {
-	LOCATION_LOGD("location_cps_get_last_position");
-
-	/* Do not need to check GPS_ENABLED and NETWORK_ENABLED */
+	LOCATION_LOGD("location_cps_get_last_position_ext");
 
 	LocationCpsPrivate *priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-
-	LocationError ret = LOCATION_ERROR_NONE;
 
 	LocModCpsOps ops = priv->mod->ops;
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
@@ -558,7 +542,6 @@ location_cps_get_last_position_ext (LocationCps *self,
 
 	return ops.get_last_position (priv->mod->handler, position, velocity, accuracy);
 }
-
 
 static int
 location_cps_get_velocity (LocationCps *self,
@@ -744,5 +727,4 @@ location_cps_class_init (LocationCpsClass *klass)
 	g_object_class_install_properties (gobject_class,
 			PROP_MAX,
 			properties);
-
 }

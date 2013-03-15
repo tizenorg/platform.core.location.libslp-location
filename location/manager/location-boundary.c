@@ -100,7 +100,6 @@ static void _free_polygon_position(gpointer data)
 	location_position_free(position);
 }
 
-
 EXPORT_API LocationBoundary *
 location_boundary_new_for_rect (LocationPosition* left_top,
 	LocationPosition* right_bottom)

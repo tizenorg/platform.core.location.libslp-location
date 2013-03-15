@@ -49,9 +49,8 @@ gint location_setting_get_int(const gchar* path)
 {
 	g_return_val_if_fail(path, -1);
 	int val = -1;
-	if( vconf_get_int(path, &val)){
+	if(vconf_get_int(path, &val)){
 		LOCATION_LOGW("vconf_get_int: failed [%s]", path);
-		val = -1;
 	} else if (val == 0)
 		LOCATION_LOGD("vconf_get_int: [%s]:[%d]", path, val);
 	return val;
@@ -61,9 +60,8 @@ gboolean location_setting_get_bool(const gchar* path)
 {
 	g_return_val_if_fail(path, -1);
 	gboolean val = FALSE;
-	if( vconf_get_bool(path, &val)){
+	if(vconf_get_bool(path, &val)){
 		LOCATION_LOGW("vconf_get_int: failed [%s]", path);
-		val = FALSE;
 	}
 	return val;
 }
@@ -79,7 +77,7 @@ gint location_setting_add_notify(const gchar* path, SettingCB setting_cb, gpoint
 	g_return_val_if_fail(path, -1);
 	g_return_val_if_fail(self, -1);
 
-	if( vconf_notify_key_changed(path, setting_cb, self)){
+	if(vconf_notify_key_changed(path, setting_cb, self)){
 		LOCATION_LOGW("vconf notify add failed [%s]", path);
 		return -1;
 	}
@@ -92,7 +90,7 @@ gint location_setting_ignore_notify(const gchar* path, SettingCB setting_cb)
 	g_return_val_if_fail(path, -1);
 	g_return_val_if_fail(setting_cb, -1);
 
-	if( vconf_ignore_key_changed(path, setting_cb)){
+	if(vconf_ignore_key_changed(path, setting_cb)){
 		LOCATION_LOGW("vconf notify remove failed [%s]", path);
 		return -1;
 	}

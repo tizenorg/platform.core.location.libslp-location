@@ -24,7 +24,6 @@
 
 #include <glib-object.h>
 
-
 /**
  * @file location-gps.h
  * @brief This file contains the internal definitions and structures related to GPS.
