@@ -1,6 +1,6 @@
 Name:       libslp-location
 Summary:    Location Based Service
-Version:    0.4.6
+Version:    0.4.7
 Release:    1
 Group:      System/Libraries
 License:    Apache Licensc, Version 2.0
@@ -14,7 +14,6 @@ BuildRequires:  pkgconfig(dbus-glib-1)
 BuildRequires:  pkgconfig(gmodule-2.0)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
-BuildRequires:  pkgconfig(location-appman)
 BuildRequires:  pkgconfig(json-glib-1.0)
 
 

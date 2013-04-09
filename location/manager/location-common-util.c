@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <location-appman.h>
 
 #include "location.h"
 #include "location-common-util.h"
@@ -35,144 +34,22 @@
 
 int location_application_get_authority (void)
 {
-	pid_t pid = getpid();
-	location_appman_s *appman;
-	int enabled;
-	int found;
-
-	if (location_appman_get_package_by_pid(pid, &appman) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_get_package_by_pid");
-		return LOCATION_APP_NOT_FOUND;
-	}
-
-	if (location_appman_find_package(appman->package, &found) != LOCATION_APPMAN_ERROR_NONE || found == LOCATION_APPMAN_PACKAGE_NOTFOUND) {
-		LOCATION_LOGE("Cannot find package [%s]", appman->package);
-		return LOCATION_APP_NOT_FOUND;
-	}
-
-	if (location_appman_is_enabled(appman->package, &enabled) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_is_enabled");
-		return LOCATION_APP_NOT_FOUND;
-	}
-
-	if (enabled) {
-		return LOCATION_APP_ON;
-	}
-	else {
-		return LOCATION_APP_OFF;
-
-	}
-
-	return LOCATION_APP_NOT_FOUND;
+	return LOCATION_APP_ON;
 }
 
 int location_application_set_authority (int auth)
 {
-	pid_t pid = getpid();
-	location_appman_s *appman;
-	int enabled;
-	int found;
-
-	if (location_appman_get_package_by_pid(pid, &appman) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_get_package_by_pid");
-		return LOCATION_ERROR_UNKNOWN;
-	}
-
-	if (location_appman_find_package(appman->package, &found) != LOCATION_APPMAN_ERROR_NONE || found == LOCATION_APPMAN_PACKAGE_NOTFOUND) {
-		LOCATION_LOGE("Cannot find package [%s]", appman->package);
-		return LOCATION_ERROR_UNKNOWN;
-	}
-
-	if (location_appman_set_on(appman->package, auth) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_is_enabled");
-		return LOCATION_ERROR_UNKNOWN;
-	}
-
 	return LOCATION_ERROR_NONE;
 }
 
 int location_application_add_app_to_applist (void)
 {
-	pid_t pid = getpid();
-	location_appman_s *appman;
-	int found;
-	time_t timestamp;
-
-	if (location_appman_get_package_by_pid(pid, &appman) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_get_package_by_pid");
-		return FALSE;
-	}
-
-	if (location_appman_find_package(appman->package, &found) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Cannot find package [%s]", appman->package);
-		if (appman) g_free(appman);
-		return FALSE;
-	}
-
-	if (found == LOCATION_APPMAN_PACKAGE_NOTFOUND) {
-		LOCATION_LOGD("First time to use location [%s]", appman->package);
-		if (location_appman_register_package(appman) != LOCATION_APPMAN_ERROR_NONE) {
-			LOCATION_LOGE("Fail to register [%s]", appman->package);
-			if (appman) g_free(appman);
-			return FALSE;
-		}
-	} else {
-		LOCATION_LOGD("[%s] is already registered. Update recently used time", appman->package);
-		if (appman) g_free(appman);
-		return FALSE;
-	}
-
-	if (appman) g_free(appman);
 	return TRUE;
 }
 
 int location_application_enabled (void)
 {
-	pid_t pid = getpid();
-	location_appman_s *appman;
-	int enabled;
-	int found;
-	time_t timestamp;
-
-	if (TRUE == location_appman_check_developer_mode()) {
-		LOCATION_LOGE("Location is Enabled");
-		return TRUE;
-	}
-
-	if (location_appman_get_package_by_pid(pid, &appman) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_get_package_by_pid");
-		return FALSE;
-	}
-
-	if (location_appman_find_package(appman->package, &found) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Cannot find package [%s]", appman->package);
-		if (appman) g_free(appman);
-		return FALSE;
-	}
-
-	if (found == LOCATION_APPMAN_PACKAGE_NOTFOUND) {
-		LOCATION_LOGD("First time to use location [%s]", appman->package);
-		if (location_appman_register_package(appman) != LOCATION_APPMAN_ERROR_NONE) {
-			LOCATION_LOGE("Fail to register [%s]", appman->package);
-			if (appman) g_free(appman);
-			return FALSE;
-		}
-	} else {
-		LOCATION_LOGD("[%s] is already registered. Update recently used time", appman->package);
-		time(&timestamp);
-		if (location_appman_set_recently_used(appman->package, timestamp) != LOCATION_APPMAN_ERROR_NONE) {
-			LOCATION_LOGD("Cannot update recently used time");
-		}
-	}
-
-	if (location_appman_is_enabled(appman->package, &enabled) != LOCATION_APPMAN_ERROR_NONE) {
-		LOCATION_LOGE("Fail to location_appman_is_enabled");
-		if (appman) g_free(appman);
-		return FALSE;
-	}
-
-	if (appman) g_free(appman);
-	return enabled;
+	return TRUE;
 }
 
 static gint compare_position (gconstpointer a, gconstpointer b)

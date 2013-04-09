@@ -51,7 +51,7 @@ AC_COMPILE_IFELSE(
 AC_MSG_RESULT($has_visibility)
 
 # Check dependencies
-PKG_CHECK_MODULES(LOCATION, [glib-2.0 gobject-2.0 dbus-glib-1 gmodule-2.0 vconf vconf-internal-keys location-appman])
+PKG_CHECK_MODULES(LOCATION, [glib-2.0 gobject-2.0 dbus-glib-1 gmodule-2.0 vconf vconf-internal-keys])
 AC_SUBST(LOCATION_LIBS)
 AC_SUBST(LOCATION_CFLAGS)
 
