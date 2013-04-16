@@ -508,21 +508,7 @@ location_cps_get_last_position (LocationCps *self,
 		LocationAccuracy **accuracy)
 {
 	LOCATION_LOGD("location_cps_get_last_position");
-
-	LocationCpsPrivate *priv = GET_PRIVATE(self);
-	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-
-	int ret = LOCATION_ERROR_NONE;
-	LocationVelocity *_velocity = NULL;
-
-	LocModCpsOps ops = priv->mod->ops;
-	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (ops.get_last_position, LOCATION_ERROR_NOT_AVAILABLE);
-
-	ret = ops.get_last_position (priv->mod->handler, position, &_velocity, accuracy);
-	if (_velocity) location_velocity_free(_velocity);
-
-	return ret;
+	return LOCATION_ERROR_NOT_SUPPORTED;
 }
 
 static int
@@ -532,15 +518,7 @@ location_cps_get_last_position_ext (LocationCps *self,
 		LocationAccuracy **accuracy)
 {
 	LOCATION_LOGD("location_cps_get_last_position_ext");
-
-	LocationCpsPrivate *priv = GET_PRIVATE(self);
-	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
-
-	LocModCpsOps ops = priv->mod->ops;
-	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
-	g_return_val_if_fail (ops.get_last_position, LOCATION_ERROR_NOT_AVAILABLE);
-
-	return ops.get_last_position (priv->mod->handler, position, velocity, accuracy);
+	return LOCATION_ERROR_NOT_SUPPORTED;
 }
 
 static int

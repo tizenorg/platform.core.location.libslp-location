@@ -63,16 +63,9 @@ vconftool set -t double db/location/last/wps/Altitude "0.0" -f
 vconftool set -t double db/location/last/wps/HorAccuracy "0.0" -f
 vconftool set -t double db/location/last/wps/Speed "0.0" -f
 vconftool set -t double db/location/last/wps/Direction "0.0" -f
-vconftool set -t int db/location/last/cps/Timestamp "0" -f
-vconftool set -t double db/location/last/cps/Latitude "0.0" -f
-vconftool set -t double db/location/last/cps/Longitude "0.0" -f
-vconftool set -t double db/location/last/cps/Altitude "0.0" -f
-vconftool set -t double db/location/last/cps/HorAccuracy "0.0" -f
 vconftool set -t int db/location/setting/GpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/AgpsEnabled "0" -g 6514 -f
 vconftool set -t int db/location/setting/NetworkEnabled "0" -g 6514 -f
-vconftool set -t int db/location/setting/SensorEnabled "0" -g 6514 -f
-
 
 %postun -p /sbin/ldconfig
 
