@@ -26,6 +26,7 @@
 #include <gconf/gconf-client.h>
 #include <location-map-service.h>
 #include "location-api-test-util.h"
+#include "location-geocode.h"
 
 #define STR_MAX	128
 LocationMapObject* map_obj = NULL;
@@ -203,6 +204,7 @@ static void _print_property (gpointer data, gpointer user_data)
 static void
 __plugin_print_poi_list (gpointer data, gpointer user_data)
 {
+	int i=0;
 	LocationLandmark *landmark = (LocationLandmark *)data;
 	LocationPosition *pos = location_landmark_get_position (landmark);
 	LocationAddress *addr = location_landmark_get_address (landmark);
@@ -214,7 +216,25 @@ __plugin_print_poi_list (gpointer data, gpointer user_data)
 			pos->latitude, pos->longitude,
 			addr->building_number, addr->city, addr->country_code, addr->district,
 			addr->postal_code);
-
+	g_printf("Supplier details : [NAME: %s],[LINK: %s],[ID:%s],[TYPE: %s]",
+			landmark_linkobject_get_name(location_landmark_get_supplier( landmark)),
+			landmark_linkobject_get_link_string(location_landmark_get_supplier( landmark)),
+			landmark_linkobject_get_id(location_landmark_get_supplier( landmark)),
+			landmark_linkobject_get_type(location_landmark_get_supplier( landmark)));
+	g_printf("Related  details : [NAME: %s],[LINK: %s],[ID:%s],[TYPE: %s]",
+			landmark_linkobject_get_name(location_landmark_get_related( landmark)),
+			landmark_linkobject_get_link_string(location_landmark_get_related( landmark)),
+			landmark_linkobject_get_id(location_landmark_get_related( landmark)),
+			landmark_linkobject_get_type(location_landmark_get_related( landmark)));
+	g_printf("Rating details : [AVG: %d],[COUNT:%d]",
+			landmark_rating_get_average(location_landmark_get_rating(landmark)),
+			landmark_rating_get_count(location_landmark_get_rating(landmark)));
+	for(i=0;i<g_list_length(location_landmark_get_editorial(landmark));i++)
+	{
+		LandmarkEditorial * editorial=g_list_nth_data(location_landmark_get_editorial(landmark),i);
+		g_printf("Editorials : [Desc: %s] [LANG: %s]",
+		landmark_editorial_get_description(editorial),landmark_editorial_get_language(editorial));
+	}
 	GList *key_list = location_landmark_get_property_key(landmark);
 	if (key_list) {
 		g_list_foreach(key_list, _print_property, landmark);
@@ -768,12 +788,19 @@ typedef struct {
 static gboolean idle_position_from_address_async(gpointer data)
 {
 	IdleData* idle_data = (IdleData*)data;
+	guint req_id = 0;
 	char str[STR_MAX];
-	int ret = location_map_get_position_from_address_async(idle_data->obj, idle_data->addr, idle_data->pos_cb, idle_data->user_data);
+	LocationGeocodePreference *pref = location_geocode_pref_new();
+	int ret = location_map_get_position_from_address_async(idle_data->obj, idle_data->addr,pref, idle_data->pos_cb, idle_data->user_data,&req_id);
 	GetLocationError(str, ret);
-	g_printf("location_get_position_from_address_async: returned value [%s]\n", str);
+	if(ret != LOCATION_ERROR_NONE) {
+			g_printf("Fail location_get_position_from_address_async Error[%s]\n", str);
+	} else {
+			g_printf("location_get_position_from_address_async, req_id %d\n", req_id);
+	}
 	location_address_free(idle_data->addr);
 	g_free(idle_data);
+	location_geocode_pref_free(pref);
 	return FALSE;
 }
 
@@ -781,11 +808,18 @@ static gboolean idle_position_from_freefromed_address_async(gpointer data)
 {
 	IdleData* idle_data = (IdleData*)data;
 	char str[STR_MAX];
-	int ret = location_map_get_position_from_freeformed_address_async(idle_data->obj, idle_data->str_addr, idle_data->pos_cb, idle_data->user_data);
+	guint req_id = 0;
+	LocationGeocodePreference *pref = location_geocode_pref_new();
+	int ret = location_map_get_position_from_freeformed_address_async(idle_data->obj, idle_data->str_addr,pref, idle_data->pos_cb, idle_data->user_data,&req_id);
 	GetLocationError(str, ret);
-	g_printf("location_get_position_from_freeformed_address_async: returned value [%s]\n", str);
+	if(ret != LOCATION_ERROR_NONE) {
+			g_printf("Fail location_get_position_from_freeformed_address_async Error[%s]\n", str);
+	} else {
+			g_printf("location_get_position_from_freeformed_address_async, req_id %d\n", req_id);
+	}
 	g_free(idle_data->str_addr);
 	g_free(idle_data);
+	location_geocode_pref_free(pref);
 	return FALSE;
 }
 
@@ -793,9 +827,14 @@ static gboolean idle_address_from_position_async(gpointer data)
 {
 	IdleData* idle_data = (IdleData*)data;
 	char str[STR_MAX];
-	int ret = location_map_get_address_from_position_async(idle_data->obj, idle_data->pos, idle_data->addr_cb, idle_data->user_data);
+	guint reqid = 0;
+	int ret = location_map_get_address_from_position_async(idle_data->obj, idle_data->pos,idle_data->addr_cb, idle_data->user_data,&reqid);
 	GetLocationError(str, ret);
-	g_printf("location_map_get_address_from_position_async: returned value [%s]\n", str);
+	if(ret != LOCATION_ERROR_NONE) {
+			g_printf("Fail location_map_get_address_from_position_async Error[%s]\n", str);
+	} else {
+			g_printf("location_map_get_address_from_position_async, req_id %d\n", reqid);
+	}
 	location_position_free(idle_data->pos);
 	g_free(idle_data);
 	return FALSE;
@@ -804,16 +843,18 @@ static gboolean idle_location_map_get_position_from_address_async(gpointer data)
 {
 	g_printf("+++idle location map get position from address async begin\n");
 	IdleData* idle_data = (IdleData*)data;
+	guint req_id = 0;
+	char str[STR_MAX];
+	LocationGeocodePreference *pref = location_geocode_pref_new();
+	LocationError err = location_map_get_position_from_address_async(idle_data->obj,idle_data->addr,pref,idle_data->pos_cb,idle_data->user_data,&req_id);
 
-	LocationError err = location_map_get_position_from_address_async(idle_data->obj,idle_data->addr,idle_data->pos_cb,idle_data->user_data);
-
-	if (LOCATION_ERROR_NONE == err){
-			g_debug("location_map_get_position_from_address_async() success");
-		}
-	else{
-			g_warning ("location_map_get_position_from_address_async() failed> error code:%d", err);
-		}
+	if(err != LOCATION_ERROR_NONE) {
+			g_printf("Fail location_get_position_from_address_async Error[%s]\n", str);
+	} else {
+			g_printf("location_get_position_from_address_async, req_id %d\n", req_id);
+	}
 	g_free(idle_data);
+	location_geocode_pref_free(pref);
 	g_printf("---idle location map get position from address async  end\n");
 	return FALSE;
 }
@@ -877,6 +918,7 @@ static void print_menu()
 	g_printf("16.  location_map_get_supported_providers \n");
 	g_printf("17.  location_map_get_default_provider \n");
 	g_printf("18.  location_map_set_provider \n");
+	g_printf("19.  location_map_cancel_geocode_request. \n");
 	g_printf("99.  change map provider to default\n");
 	g_printf("99a. change map provider to decarta\n");
 	g_printf("99b. change map provider to osm\n");
@@ -1081,7 +1123,7 @@ int main(int argc, char** argv)
 		}else if(0 == g_strcmp0("7a", strOpt)) {
 			g_printf("location_map_search_poi_with_category\n");
 			LocationPOIFilter *filter = location_poi_filter_new();
-			location_poi_filter_set(filter, "CATEGORY", "restaurant");
+			location_poi_filter_set(filter, "CATEGORY", "eat_drink");
 
 			LocationPOIPreference *pref = location_poi_pref_new();
 			location_poi_pref_set_max_result(pref, 5);
@@ -1562,6 +1604,21 @@ int main(int argc, char** argv)
 			else {
 				g_printf ("Fail to set provider [%d]\n", opt);
 			}
+		}
+		else if(0 == g_strcmp0("19", strOpt)) {
+			int req_id;
+			int len = 0;
+
+			g_printf("Input ReqID : ");
+			len = scanf("%d", &req_id);
+
+			ret = location_map_cancel_geocode_request(map_obj, req_id);
+			GetLocationError(str, ret);
+			if (ret != LOCATION_ERROR_NONE) {
+				g_printf("Fail to cancel Geocode request. Error[%s]\n", str);
+			}
+			else
+				g_printf("location_map_cancel_geocode_request, req_id %d\n", req_id);
 		}else if (0 == g_strcmp0 ("99", strOpt)) {
 			if (map_obj) {
 				g_object_set (map_obj, "provider", NULL, NULL);

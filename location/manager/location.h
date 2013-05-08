@@ -856,7 +856,6 @@ int location_get_accessibility_state (LocationAccessState *state);
 /**
  * @brief
  * Send command to the server.
- * @remarks This functions is not implemneted yet.
  * @pre
  * #location_init should be called before.\n
  * Calling application must have glib or ecore main loop.\n
@@ -869,6 +868,23 @@ int location_get_accessibility_state (LocationAccessState *state);
  * Please refer #LocationError for more information.
  */
 int location_send_command(const char *cmd);
+
+/**
+ * @brief
+ * Set option of server.
+ * @pre
+ * #location_init should be called before.\n
+ * Calling application must have glib or ecore main loop.\n
+ * Calling application must have an active data connection.
+ * @post None.
+ * @param [in]	obj - a #LocationObject created by #location_new
+ * @param [in]	option - a #char
+ * @return int
+ * @retval 0                              Success
+ *
+ * Please refer #LocationError for more information.
+ */
+int location_set_option(LocationObject *obj, const char *option);
 
 /**
  * @} @}

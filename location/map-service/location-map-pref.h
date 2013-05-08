@@ -108,6 +108,16 @@ LocationMapPref * location_map_pref_copy (LocationMapPref *pref);
 void location_map_pref_free (LocationMapPref *pref);
 
 /**
+ * @brief Set maps key to be used in the service request.
+ */
+gboolean location_map_pref_set_maps_key(LocationMapPref *pref, const char* maps_key);
+
+/**
+ * @brief Get maps key to be used in the service request.
+ */
+gchar *location_map_pref_get_maps_key(const LocationMapPref *pref);
+
+/**
  * @} @}
  */
 

@@ -59,11 +59,13 @@ typedef struct{
 	///< This is used for getting a geocode by using a free-fromed address from a plug-in.
 	int (*get_reverse_geocode)(gpointer handle, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddress **address, LocationAccuracy **accuracy);
 	///< This is used for getting a reverse geocode from a plug-in.
-	int (*get_geocode_async)(gpointer handle, const LocationAddress *address, const LocationMapPref *svc_pref, LocationPositionCB callback, gpointer userdata);
+	int (*get_geocode_async)(gpointer handle, const LocationAddress *address, const LocationMapPref *svc_pref, const LocationGeocodePreference *pref, LocationPositionCB callback, gpointer userdata, guint * req_id);
 	///< This is used for getting a geocode from a plug-in asynchronously.
-	int (*get_geocode_freetext_async)(gpointer handle, const gchar *address, const LocationMapPref *svc_pref, LocationPositionCB callback, gpointer userdata);
+	int (*get_geocode_freetext_async)(gpointer handle, const gchar *address, const LocationMapPref *svc_pref, const LocationGeocodePreference *pref, LocationPositionCB callback, gpointer userdata, guint * req_id);
 	///< This is used for getting a geocode by using a free-fromed address from a plug-in asynchronously.
-	int (*get_reverse_geocode_async)(gpointer handle, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddressCB callback, gpointer userdata);
+	int (*cancel_geocode_request) (gpointer handle, guint req_id);
+	///< This is used for cancel geocode request from a plug-in.
+	int (*get_reverse_geocode_async)(gpointer handle, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddressCB callback, gpointer userdata, guint * req_id);
 	///< This is used for getting a reverse geocode from a plug-in asynchronously.
 	int (*search_poi) (gpointer handle, const LocationPOIFilter *filter, const LocationPosition *position, const LocationMapPref *svc_pref, const LocationPOIPreference *pref, LocationPOICB cb, const gpointer user_data, guint * req_id);
 	///< This is used for searching poi with the position from a plug-in asynchronously.
@@ -124,16 +126,6 @@ typedef struct{
 	int (*get_position)(gpointer handle, LocationPosition **position, LocationVelocity **velocity, LocationAccuracy **accuracy);   ///< This is used for getting a position from a plug-in.
 	int (*get_last_position)(gpointer handle, LocationPosition **position, LocationVelocity **velocity, LocationAccuracy **accuracy);   ///< This is used for getting a last position from a plug-in.
 } LocModWpsOps;
-
-/**
- * @brief This represents APIs declared in a CPS plug-in for location CPS modules.
- */
-typedef struct{
-	int (*start)(gpointer handle, LocModStatusCB status_cb, LocModPositionExtCB pos_ext_cb, LocModSatelliteCB sat_cb, gpointer userdata);   ///< This is used for starting a WPS service from a plug-in. #LocModStatusCB, #LocModPositionExtCB and #LocModSatelliteCB(Not used) are given from a location framework to a plug-in for asynchronous signaling.
-	int (*stop)(gpointer handle);
-	int (*get_position)(gpointer handle, LocationPosition **position, LocationVelocity **velocity, LocationAccuracy **accuracy);   ///< This is used for getting a position from a plug-in.
-	int (*get_last_position)(gpointer handle, LocationPosition **position, LocationVelocity **velocity, LocationAccuracy **accuracy);   ///< This is used for getting a last position from a plug-in.
-} LocModCpsOps;
 
 /**
  * @brief This is used for exported APIs in a plug-in for a location framework.

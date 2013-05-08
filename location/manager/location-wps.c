@@ -50,13 +50,12 @@ typedef struct _LocationWpsPrivate {
 	LocationVelocity *vel;
 	LocationAccuracy *acc;
 	GList *boundary_list;
-	guint		pos_timer;
-	guint		vel_timer;
 } LocationWpsPrivate;
 
 enum {
 	PROP_0,
 	PROP_METHOD_TYPE,
+	PROP_IS_STARTED,
 	PROP_LAST_POSITION,
 	PROP_POS_INTERVAL,
 	PROP_VEL_INTERVAL,
@@ -75,68 +74,6 @@ static void location_ielement_interface_init (LocationIElementInterface *iface);
 G_DEFINE_TYPE_WITH_CODE (LocationWps, location_wps, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (LOCATION_TYPE_IELEMENT,
                          location_ielement_interface_init));
-
-static gboolean
-_position_timeout_cb (gpointer data)
-{
-	GObject *object = (GObject *)data;
-	LocationWpsPrivate *priv = GET_PRIVATE(object);
-	if (!priv) return FALSE;
-
-	LocationPosition *pos = NULL;
-	LocationAccuracy *acc = NULL;
-
-	if (priv->pos) {
-		pos = location_position_copy(priv->pos);
-	} else {
-		pos = location_position_new (0, 0.0, 0.0, 0.0, LOCATION_STATUS_NO_FIX);
-	}
-
-	if (priv->acc) {
-		acc = location_accuracy_copy (priv->acc);
-	} else {
-		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
-	}
-
-	LOCATION_LOGD("POSITION SERVICE_UPDATED");
-	g_signal_emit(object, signals[SERVICE_UPDATED], 0, POSITION_UPDATED, pos, acc);
-
-	location_position_free (pos);
-	location_accuracy_free (acc);
-
-	return TRUE;
-}
-
-static gboolean
-_velocity_timeout_cb (gpointer data)
-{
-	GObject *object = (GObject *)data;
-	LocationWpsPrivate *priv = GET_PRIVATE(object);
-	if (!priv) return FALSE;
-
-	LocationVelocity *vel = NULL;
-	LocationAccuracy *acc = NULL;
-
-	if (priv->vel) {
-		vel = location_velocity_copy(priv->vel);
-	} else {
-		vel = location_velocity_new (0, 0.0, 0.0, 0.0);
-	}
-
-	if (priv->acc) {
-		acc = location_accuracy_copy (priv->acc);
-	} else {
-		acc = location_accuracy_new (LOCATION_ACCURACY_LEVEL_NONE, 0.0, 0.0);
-	}
-
-	LOCATION_LOGD("POSITION SERVICE_UPDATED");
-	g_signal_emit(object, signals[SERVICE_UPDATED], 0, VELOCITY_UPDATED, vel, acc);
-
-	location_velocity_free (vel);
-	location_accuracy_free (acc);
-
-	return TRUE;
-}
 
 static void
 __reset_pos_data_from_priv(LocationWpsPrivate *priv)
@@ -166,41 +103,40 @@ wps_status_cb (gboolean enabled,
 	LOCATION_LOGD("wps_status_cb");
 	g_return_if_fail(self);
 	LocationWpsPrivate* priv = GET_PRIVATE(self);
-	enable_signaling(self, signals, &(priv->enabled), enabled, status);
-	if (!priv->enabled) {
-		if (priv->pos_timer) {
-			g_source_remove (priv->pos_timer);
-			priv->pos_timer = 0;
-		}
-		if (priv->vel_timer) {
-			g_source_remove (priv->vel_timer);
-			priv->vel_timer = 0;
-		}
+	if (priv->enabled == TRUE && enabled == FALSE) {
+		enable_signaling(self, signals, &(priv->enabled), enabled, status);
 	}
 }
 
 static void
-wps_position_ext_cb (gboolean enabled,
+wps_location_cb (gboolean enabled,
 	LocationPosition *pos,
 	LocationVelocity *vel,
 	LocationAccuracy *acc,
 	gpointer self)
 {
-	LOCATION_LOGD("wps_position_ext_cb");
+	LOCATION_LOGD("wps_location_cb");
 	g_return_if_fail(self);
 	g_return_if_fail(pos);
 	g_return_if_fail(vel);
 	g_return_if_fail(acc);
 	LocationWpsPrivate* priv = GET_PRIVATE(self);
 
-	if (!priv->enabled && enabled) {
-		if (!priv->pos_timer) priv->pos_timer = g_timeout_add_seconds (priv->pos_interval, _position_timeout_cb, self);
-		if (!priv->vel_timer) priv->vel_timer = g_timeout_add_seconds (priv->vel_interval, _velocity_timeout_cb, self);
-	}
-
-	enable_signaling(self, signals, &(priv->enabled), enabled, pos->status);
-	position_signaling(self, signals, &(priv->enabled), priv->pos_interval, FALSE, &(priv->pos_updated_timestamp), &(priv->pos), &(priv->acc), priv->boundary_list, pos, acc);
-	velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, FALSE, &(priv->vel_updated_timestamp), &(priv->vel), vel, acc);
+	location_signaling(self,
+				signals,
+				enabled,
+				priv->boundary_list,
+				pos,
+				vel,
+				acc,
+				priv->pos_interval,
+				priv->vel_interval,
+				&(priv->enabled),
+				&(priv->pos_updated_timestamp),
+				&(priv->vel_updated_timestamp),
+				&(priv->pos),
+				&(priv->vel),
+				&(priv->acc));
 }
 
 static void
@@ -228,7 +164,7 @@ location_setting_wps_cb(keynode_t *key,
 	else {
 		if (1 == location_setting_get_int(VCONFKEY_LOCATION_NETWORK_ENABLED) && priv->mod->ops.start && !priv->is_started) {
 			LOCATION_LOGD("location resumed by setting");
-			ret = priv->mod->ops.start (priv->mod->handler, wps_status_cb, wps_position_ext_cb, NULL, self);
+			ret = priv->mod->ops.start (priv->mod->handler, wps_status_cb, wps_location_cb, NULL, self);
 			if (ret == LOCATION_ERROR_NONE) {
 				priv->is_started = TRUE;
 			}
@@ -253,7 +189,7 @@ location_wps_start (LocationWps *self)
 	if (!location_setting_get_int(VCONFKEY_LOCATION_NETWORK_ENABLED)) {
 		ret = LOCATION_ERROR_SETTING_OFF;
 	} else {
-		ret = priv->mod->ops.start (priv->mod->handler, wps_status_cb, wps_position_ext_cb, NULL, self);
+		ret = priv->mod->ops.start (priv->mod->handler, wps_status_cb, wps_location_cb, NULL, self);
 		if (ret == LOCATION_ERROR_NONE) {
 			priv->is_started = TRUE;
 		}
@@ -295,6 +231,7 @@ location_wps_stop (LocationWps *self)
 		location_setting_ignore_notify (VCONFKEY_LOCATION_NETWORK_ENABLED, location_setting_wps_cb);
 		priv->set_noti = FALSE;
 	}
+
 	__reset_pos_data_from_priv(priv);
 
 	return ret;
@@ -309,15 +246,6 @@ location_wps_dispose (GObject *gobject)
 	if (priv->set_noti == TRUE) {
 		location_setting_ignore_notify (VCONFKEY_LOCATION_NETWORK_ENABLED, location_setting_wps_cb);
 		priv->set_noti = FALSE;
-
-		if (priv->pos_timer) {
-			g_source_remove (priv->pos_timer);
-			priv->pos_timer = 0;
-		}
-		if (priv->vel_timer) {
-			g_source_remove (priv->vel_timer);
-			priv->vel_timer = 0;
-		}
 
 	}
 
@@ -355,9 +283,9 @@ location_wps_finalize (GObject *gobject)
 
 static void
 location_wps_set_property (GObject *object,
-	guint property_id,
-	const GValue *value,
-	GParamSpec *pspec)
+		guint property_id,
+		const GValue *value,
+		GParamSpec *pspec)
 {
 	LocationWpsPrivate* priv = GET_PRIVATE(object);
 	int ret = 0;
@@ -367,13 +295,13 @@ location_wps_set_property (GObject *object,
 			GList *boundary_list = (GList *)g_list_copy(g_value_get_pointer(value));
 			ret = set_prop_boundary(&priv->boundary_list, boundary_list);
 			if(ret != 0) LOCATION_LOGD("Set boundary. Error[%d]", ret);
-			break;
+				break;
 		}
 		case PROP_REMOVAL_BOUNDARY: {
 			LocationBoundary *req_boundary = (LocationBoundary*) g_value_dup_boxed(value);
 			ret = set_prop_removal_boundary(&priv->boundary_list, req_boundary);
 			if(ret != 0) LOCATION_LOGD("Set removal boundary. Error[%d]", ret);
-			break;
+				break;
 		}
 		case PROP_POS_INTERVAL: {
 			guint interval = g_value_get_uint(value);
@@ -386,11 +314,6 @@ location_wps_set_property (GObject *object,
 			else
 				priv->pos_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
 
-			if (priv->pos_timer) {
-				g_source_remove (priv->pos_timer);
-				priv->pos_timer = g_timeout_add_seconds (priv->pos_interval, _position_timeout_cb, object);
-			}
-
 			break;
 		}
 		case PROP_VEL_INTERVAL: {
@@ -401,14 +324,9 @@ location_wps_set_property (GObject *object,
 				else
 					priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_MAX;
 			}
-			else
+			else {
 				priv->vel_interval = (guint)LOCATION_UPDATE_INTERVAL_DEFAULT;
-
-			if (priv->vel_timer) {
-				g_source_remove (priv->vel_timer);
-				priv->vel_timer = g_timeout_add_seconds (priv->vel_interval, _velocity_timeout_cb, object);
 			}
-
 			break;
 		}
 		default:
@@ -419,15 +337,18 @@ location_wps_set_property (GObject *object,
 
 static void
 location_wps_get_property (GObject *object,
-	guint property_id,
-	GValue *value,
-	GParamSpec *pspec)
+		guint property_id,
+		GValue *value,
+		GParamSpec *pspec)
 {
 	LocationWpsPrivate *priv = GET_PRIVATE (object);
 
 	switch (property_id){
 		case PROP_METHOD_TYPE:
 			g_value_set_int(value, LOCATION_METHOD_WPS);
+			break;
+		case PROP_IS_STARTED:
+			g_value_set_boolean(value, priv->is_started);
 			break;
 		case PROP_LAST_POSITION:
 			g_value_set_boxed (value, priv->pos);
@@ -610,6 +531,17 @@ location_wps_get_last_satellite (LocationWps *self,
 	return LOCATION_ERROR_NOT_SUPPORTED;
 }
 
+static int
+location_wps_set_option (LocationWps *self, const char *option)
+{
+	LOCATION_LOGD("location_wps_set_option");
+	LocationWpsPrivate* priv = GET_PRIVATE(self);
+	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
+	//g_return_val_if_fail (priv->mod->ops.set_option, LOCATION_ERROR_NOT_AVAILABLE);
+	return LOCATION_ERROR_NONE;
+}
+
 static void
 location_ielement_interface_init (LocationIElementInterface *iface)
 {
@@ -623,6 +555,7 @@ location_ielement_interface_init (LocationIElementInterface *iface)
 	iface->get_last_velocity = (TYPE_GET_VELOCITY)location_wps_get_last_velocity;
 	iface->get_satellite = (TYPE_GET_SATELLITE)location_wps_get_satellite;
 	iface->get_last_satellite = (TYPE_GET_SATELLITE)location_wps_get_last_satellite;
+	iface->set_option = (TYPE_SET_OPTION)location_wps_set_option;
 }
 
 static void
@@ -649,8 +582,6 @@ location_wps_init (LocationWps *self)
 	priv->acc = NULL;
 	priv->boundary_list = NULL;
 
-	priv->pos_timer = 0;
-	priv->vel_timer = 0;
 }
 
 static void
@@ -730,6 +661,12 @@ location_wps_class_init (LocationWpsClass *klass)
 			LOCATION_METHOD_WPS,
 			LOCATION_METHOD_WPS,
 			G_PARAM_READABLE);
+
+	properties[PROP_IS_STARTED] = g_param_spec_boolean ("is_started",
+			"wps is started prop",
+			"wps is started status",
+			FALSE,
+			G_PARAM_READWRITE);
 
 	properties[PROP_LAST_POSITION] = g_param_spec_boxed ("last-position",
 			"wps last position prop",

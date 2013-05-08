@@ -32,7 +32,7 @@
 #include "location-log.h"
 
 #define MAX_MODULE_INDEX 3
-const char* MODULE_PATH_PREFIX = LIBPREFIX "/location/module";
+const char* MODULE_PATH_PREFIX = "/usr/lib/location/module";
 
 static GMod*
 gmod_new (const char* module_name, gboolean is_resident)
@@ -50,7 +50,6 @@ gmod_new (const char* module_name, gboolean is_resident)
 	if(!gmod->path){
 		g_free(gmod->name);
 		g_free(gmod);
-		gmod->name = NULL;
 		return NULL;
 	}
 	gmod->module = g_module_open(gmod->path, G_MODULE_BIND_LAZY);
@@ -58,9 +57,6 @@ gmod_new (const char* module_name, gboolean is_resident)
 		g_free(gmod->name);
 		g_free(gmod->path);
 		g_free(gmod);
-		gmod->name = NULL;
-		gmod->path = NULL;
-
 		return NULL;
 	}
 	if(is_resident)
@@ -83,7 +79,7 @@ gmod_free (GMod* gmod)
 
 static gboolean
 gmod_find_sym (GMod* gmod,
-	gpointer* init_func, gpointer* shutdown_func)
+		gpointer* init_func, gpointer* shutdown_func)
 {
 	char sym[256];
 	g_stpcpy(sym, "init");
@@ -160,18 +156,6 @@ mod_new (const char* module_name)
 			ret_mod = NULL;
 		}else
 			ret_mod = (gpointer)_mod;
-	}else if(g_str_has_prefix(module_name, "cps")){
-		LocationCpsMod* _mod = g_new0(LocationCpsMod, 1);
-		_mod->gmod = gmod;
-		_mod->init = init;
-		_mod->shutdown= shutdown;
-		_mod->handler= _mod->init(&(_mod->ops));
-		if(!_mod->handler){
-			LOCATION_LOGW("module init failed");
-			gmod_free(_mod->gmod);
-			ret_mod = NULL;
-		}else
-			ret_mod = (gpointer)_mod;
 	}else{
 		LOCATION_LOGW("module name (%s) is wrong", module_name);
 		ret_mod = NULL;
@@ -182,7 +166,7 @@ mod_new (const char* module_name)
 
 static void
 mod_free (gpointer mod,
-	const char* module_name)
+		const char* module_name)
 {
 	if(!mod || !module_name)
 		return;
@@ -209,16 +193,6 @@ mod_free (gpointer mod,
 		_mod->gmod = NULL;
 	}else if(0 == g_strcmp0(module_name, "wps")){
 		LocationWpsMod* _mod = (LocationWpsMod*)mod;
-		if(_mod->shutdown && _mod->handler){
-			_mod->shutdown(_mod->handler);
-		}
-		_mod->handler = NULL;
-		_mod->init = NULL;
-		_mod->shutdown= NULL;
-		gmod_free(_mod->gmod);
-		_mod->gmod = NULL;
-	}else if(0 == g_strcmp0(module_name, "cps")){
-		LocationCpsMod* _mod = (LocationCpsMod*)mod;
 		if(_mod->shutdown && _mod->handler){
 			_mod->shutdown(_mod->handler);
 		}
@@ -255,17 +229,15 @@ gboolean module_init (void)
 	return TRUE;
 }
 
-void
-module_free (gpointer mod,
-	const char* module_name)
+void module_free (gpointer mod,
+		const char* module_name)
 {
 	if(!mod || !module_name)
 		return;
 	mod_free(mod, module_name);
 }
 
-gpointer
-module_new (const char* module_name)
+gpointer module_new (const char* module_name)
 {
 	if(!module_name)
 		return NULL;
@@ -295,8 +267,7 @@ module_new (const char* module_name)
 	return mod;
 }
 
-gboolean
-module_is_supported(const char *module_name)
+gboolean module_is_supported(const char *module_name)
 {
 	if(!module_name)
 		return FALSE;
@@ -325,8 +296,7 @@ module_is_supported(const char *module_name)
 	return found;
 }
 
-gchar *
-mod_get_realpath (const gchar *module_name)
+gchar * mod_get_realpath (const gchar *module_name)
 {
 	gchar origin_path[PATH_MAX] = {0, };
 	gchar link_path[PATH_MAX] = {0, };

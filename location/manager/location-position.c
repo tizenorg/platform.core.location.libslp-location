@@ -104,7 +104,7 @@ location_position_copy (const LocationPosition *position)
 }
 
 /* Vincenty formula. WGS-84 */
-EXPORT_API	int
+EXPORT_API int
 location_get_distance(const LocationPosition *pos1, const LocationPosition *pos2, gulong *distance)
 {
 	g_return_val_if_fail(pos1, LOCATION_ERROR_PARAMETER);

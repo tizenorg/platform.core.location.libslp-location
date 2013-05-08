@@ -673,6 +673,19 @@ gboolean location_route_element_set_average_speed_m_s(LocationRoadElement *step,
 gboolean location_route_element_set_number_of_lanes(LocationRoadElement *step, const guint num_of_lanes);
 
 /**
+ * @brief Set the value indicating the estimated time of arrival (ETA) and suggested departure time for the route
+ * @remarks The service provider should support route service.
+ * @pre  None.
+ * @post None.
+ * @param [in]  eta_validity - estimated time of arrival (ETA)
+ * @param [in]  element- a #LocationRoadElement
+ * @return gboolean
+ * @retval TRUE                              if success
+ * @see  location_route_element_get_number_of_lanes
+ */
+gboolean location_route_element_set_eta_validity(LocationRoadElement *element, RouteETAValidity eta_validity);
+
+/**
  * @brief set if the road is allowed only for pedestrians.
  * @remarks The service provider should support route service.
  * @pre  None.

@@ -47,6 +47,7 @@ typedef enum {
 	MAP_SERVICE_PREF_PROPERTY,
 
 	MAP_SERVICE_GEOCODE_TYPE,
+	MAP_SERVICE_GEOCODE_PREF_PROPERTY,
 	MAP_SERVICE_REVERSE_GEOCODE_TYPE,
 
 	MAP_SERVICE_POI_TYPE,
@@ -181,15 +182,32 @@ typedef enum {
     TRANSIT_TYPE_UNKNOWN = TRANSIT_TYPE_COUNT
 } TransitType;
 
+typedef enum
+{
+   OFFLINE, ///< Search offline
+   ONLINE,	///< Search online
+   HYBRID	///< Search online and offline, return results of one or both
+} ConnectivityMode;
+
 /**
  * @brief Location Map Object redefined by GObject.
  */
 typedef GObject LocationMapObject;
 
 /**
+ * @brief This represents a structure of ratings.
+ */
+typedef struct _LandmarkRating  LandmarkRating;
+
+/**
  * @brief This represents address information such as building number, street name, etc.
  */
 typedef struct _LocationAddress    LocationAddress;
+
+/**
+ * @brief This represents a structure of Location geocode preference.
+ */
+typedef struct _LocationGeocodePreference LocationGeocodePreference;
 
 /**
  * @brief This represents a structure of Location Map Preference.
@@ -205,6 +223,47 @@ typedef struct _LocationPOIFilter LocationPOIFilter;
  * @brief This represents a structure of Location POI preference.
  */
 typedef struct _LocationPOIPreference LocationPOIPreference;
+
+/**
+ * @brief This represents a structure of Place Attribute.
+ */
+typedef struct _LandmarkAttribute    LandmarkAttribute;
+
+/**
+ * @brief This represents a structure of Contact Detail.
+ */
+typedef struct _LandmarkContact    LandmarkContact;
+
+/**
+ * @brief This represents a structure of Link Object.
+ */
+typedef struct _LandmarkLinkObject    LandmarkLinkObject;
+
+/**
+ * @brief This represents a structure of LandmarkMedia.
+ */
+
+typedef struct _LandmarkMedia   LandmarkMedia;
+
+/**
+ * @brief This represents a structure of LandmarkImage.
+ */
+typedef struct _LandmarkImage    LandmarkImage;
+
+/**
+ * @brief This represents a structure of LandmarkCategory.
+ */
+typedef struct _LandmarkCategory    LandmarkCategory;
+
+/**
+ * @brief This represents a structure of LandmarkEditorial.
+ */
+typedef struct _LandmarkEditorial    LandmarkEditorial;
+
+/**
+ * @brief This represents a structure of LandmarkReview.
+ */
+typedef struct _LandmarkReview    LandmarkReview;
 
 /**
  * @brief This represents a structure of Landmark information.

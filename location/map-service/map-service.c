@@ -192,6 +192,7 @@ map_service_ielement_interface_init (LocationMapIElementInterface *iface)
 	iface->get_reversegeocode = (TYPE_GET_REVERSEGEOCODE)map_service_get_reversegeocode;
 	iface->get_geocode_async = (TYPE_GET_GEOCODE_ASYNC)map_service_get_geocode_async;
 	iface->get_geocode_freeform_async = (TYPE_GET_GEOCODE_FREEFORM_ASYNC)map_service_get_geocode_freeform_async;
+	iface->cancel_geocode_request = (TYPE_CANCEL_GEOCODE_REQUEST) map_service_cancel_geocode_request;
 	iface->get_reversegeocode_async = (TYPE_GET_REVERSEGEOCODE_ASYNC)map_service_get_reversegeocode_async;
 	iface->search_poi = (TYPE_SEARCH_POI) map_service_search_poi;
 	iface->search_poi_by_area = (TYPE_SEARCH_POI_BY_AREA) map_service_search_poi_by_area;

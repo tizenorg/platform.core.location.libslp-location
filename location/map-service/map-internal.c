@@ -79,30 +79,43 @@ int
 map_service_get_geocode_async (LocationMapIElement *self,
 	const LocationAddress *address,
 	const LocationMapPref *svc_pref,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata, guint *req_id)
 {
 	LOCATION_LOGD("map_service_get_geocode_async");
 	MapServicePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_async)(priv->mod->handler, address, svc_pref, callback, userdata);
+	return (priv->mod->ops.get_geocode_async)(priv->mod->handler, address, svc_pref, pref, callback, userdata,req_id);
 }
 
 int
 map_service_get_geocode_freeform_async (LocationMapIElement *self,
 	const gchar *address,
 	const LocationMapPref *svc_pref,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata, guint *req_id)
 {
 	LOCATION_LOGD("map_service_get_geocode_freeform_async");
 	MapServicePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_geocode_freetext_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_geocode_freetext_async)(priv->mod->handler, address, svc_pref, callback, userdata);
+	return (priv->mod->ops.get_geocode_freetext_async)(priv->mod->handler, address, svc_pref, pref, callback, userdata,req_id);
+}
+
+int
+map_service_cancel_geocode_request (LocationMapIElement *self, guint req_id)
+{
+	LOCATION_LOGD("map_service_cancel_geocode_request");
+	MapServicePrivate* priv = GET_PRIVATE(self);
+	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (priv->mod->ops.cancel_geocode_request, LOCATION_ERROR_NOT_AVAILABLE);
+	return (priv->mod->ops.cancel_geocode_request)(priv->mod->handler, req_id);
 }
 
 int
@@ -110,14 +123,14 @@ map_service_get_reversegeocode_async (LocationMapIElement *self,
 	const LocationPosition *position,
 	const LocationMapPref *svc_pref,
 	LocationAddressCB callback,
-	gpointer userdata)
+	gpointer userdata, guint *req_id)
 {
 	LOCATION_LOGD("map_service_get_reversegeocode_async");
 	MapServicePrivate* priv = GET_PRIVATE(self);
 	g_return_val_if_fail (priv->mod, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->handler, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (priv->mod->ops.get_reverse_geocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return (priv->mod->ops.get_reverse_geocode_async)(priv->mod->handler, position, svc_pref, callback, userdata);
+	return (priv->mod->ops.get_reverse_geocode_async)(priv->mod->handler, position, svc_pref, callback, userdata, req_id);
 }
 
 int

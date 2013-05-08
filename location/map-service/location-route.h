@@ -1490,6 +1490,18 @@ guint location_route_element_get_element_start_time(const LocationRoadElement *s
 guint location_route_element_get_element_travel_time(const LocationRoadElement *step);
 
 /**
+ * @brief Get the estimated time of arrival (ETA) and suggested departure time for the route.
+ * @remarks The service provider should support route service.
+ * @pre  None.
+ * @post None.
+ * @param [in] step - a #LocationRoadElement
+ * @return the estimated time of arrival (ETA) and suggested departure time for the route.
+ * @retval
+ * @see  location_route_element_set_eta_validity
+ */
+RouteETAValidity location_route_element_get_eta_validity(const LocationRoadElement *step);
+
+/**
  * @brief Get the destination of this run.
  * @remarks The service provider should support route service.
  * @pre  None.

@@ -1,11 +1,10 @@
 dir_location = $(top_srcdir)/location
-noinst_PROGRAMS = location-api-test gps-test wps-test hybrid-test cps-test\
+noinst_PROGRAMS = location-api-test gps-test wps-test hybrid-test\
 				  position-sample-gps velocity-sample nmea-sample satellite-sample property-sample zone-sample address-sample map-service-test
 
 gps_test_SOURCES =  gps-test.c
 wps_test_SOURCES =  wps-test.c
 hybrid_test_SOURCES =  hybrid-test.c
-cps_test_SOURCES =  cps-test.c
 position_sample_gps_SOURCES =   position-sample-gps.c
 velocity_sample_SOURCES = velocity-sample.c
 nmea_sample_SOURCES = nmea-sample.c

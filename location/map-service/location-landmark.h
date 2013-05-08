@@ -139,6 +139,355 @@ gchar *location_landmark_url_get_url_path (const LocationLandmarkUrl *url);
 gchar *location_landmark_url_get_description (const LocationLandmarkUrl *url);
 
 /**
+ * @brief Get the rating of the given #LocationLandmark
+ */
+LandmarkRating  *location_landmark_get_rating(const LocationLandmark *landmark);
+
+
+/**
+ * @brief Get the rating' count of the given #LocationLandmark
+ */
+gint landmark_rating_get_count(const LandmarkRating *rating);
+
+/**
+ * @brief Get the rating' average of the given #LocationLandmark
+ */
+gdouble  landmark_rating_get_average(const LandmarkRating *rating);
+
+/**
+ * @brief Create a new LandmarkRating
+ */
+LandmarkRating *landmark_rating_new (void);
+
+/**
+ * @brief Copy the given LandmarkRating
+ */
+LandmarkRating *landmark_rating_copy(const LandmarkRating *rating);
+
+/**
+ * @brief Free the given rating
+ */
+void landmark_rating_free (LandmarkRating *rating);
+
+/**
+ * @brief Free the given media
+ */
+void landmark_media_free (LandmarkMedia *media);
+
+/**
+ * @brief Create a new media
+ */
+LandmarkMedia *landmark_media_new (void);
+
+/**
+ * @brief Get the attribute label of the given #LandmarkAttribute
+ */
+gchar *landmark_attribute_get_label(const LandmarkAttribute *attribute);
+
+/**
+ * @brief Get the attribute text of the given #LandmarkAttribute
+ */
+gchar *landmark_attribute_get_text(const LandmarkAttribute *attribute);
+
+/**
+ * @brief Get the attribute id of the given #LandmarkAttribute
+ */
+gchar *landmark_attribute_get_identifier(const LandmarkAttribute *attribute);
+
+/**
+ * @brief Create a new #LandmarkAttribute
+ */
+LandmarkAttribute *landmark_attribute_new (void);
+
+/**
+ * @brief Free the given attribute
+ */
+void landmark_attribute_free (LandmarkAttribute *attribute);
+
+/**
+ * @brief Copy the given attribute
+ */
+LandmarkAttribute *landmark_attribute_copy(const LandmarkAttribute *attribute);
+
+/**
+ * @brief Get the attribute list of the given #LocationLandmark
+ */
+GList *location_landmark_get_attribute(const LocationLandmark *landmark);
+
+/**
+ * @brief Free the given contact
+ */
+void landmark_contact_free (LandmarkContact *contact);
+
+/**
+ * @brief Create a new  #LandmarkContact
+ */
+LandmarkContact *landmark_contact_new (void);
+
+/**
+ * @brief Copy the given contact
+ */
+LandmarkContact *landmark_contact_copy (const LandmarkContact *contact);
+
+/**
+ * @brief Get the contact list of the given #LocationLandmark
+ */
+GList *location_landmark_get_contact(const LocationLandmark *landmark);
+
+/**
+ * @brief Create a new  #LandmarkLinkObject
+ */
+LandmarkLinkObject *landmark_linkobject_new (void);
+
+/**
+ * @brief Copy the given link
+ */
+LandmarkLinkObject *landmark_linkobject_copy (const LandmarkLinkObject *link);
+
+/**
+ * @brief Free the given linkObject
+ */
+void landmark_linkobject_free (LandmarkLinkObject *linkObject);
+
+
+/**
+ * @brief Get the link of the given #LandmarkLinkObject
+ */
+gchar *landmark_linkobject_get_link_string(const LandmarkLinkObject *link);
+
+
+/**
+ * @brief Get the type of the given #LandmarkLinkObject
+ */
+gchar *landmark_linkobject_get_type(const LandmarkLinkObject *link);
+
+/**
+ * @brief Get the name of the given #LandmarkLinkObject
+ */
+gchar *landmark_linkobject_get_name(const LandmarkLinkObject *link);
+
+/**
+ * @brief Get the id of the given #LandmarkLinkObject
+ */
+gchar *landmark_linkobject_get_id(const LandmarkLinkObject *link);
+
+/**
+ * @brief Get the contact detail type of the given #LandmarkContact
+ */
+gchar *landmark_contact_get_type(const LandmarkContact *contact);
+
+/**
+ * @brief Get the contact detail label of the given #LandmarkContact
+ */
+gchar *landmark_contact_get_label(const LandmarkContact *contact);
+
+/**
+ * @brief Get the contact detail value of the given #LandmarkContact
+ */
+gchar *landmark_contact_get_value(const LandmarkContact *contact);
+
+/**
+ * @brief Get the supplier link of the given #LocationLandmark
+ */
+LandmarkLinkObject  *location_landmark_get_supplier(const LocationLandmark *landmark);
+
+/**
+ * @brief Get the attribution text of the given #LandmarkMedia
+ */
+gchar *landmark_media_get_attribution(const LandmarkMedia *media);
+
+/**
+ * @brief Get the supplier link of the given #LandmarkMedia
+ */
+LandmarkLinkObject *landmark_media_get_media_supplier(const LandmarkMedia *media);
+
+/**
+ * @brief Get the via link of the given #LandmarkMedia
+ */
+LandmarkLinkObject *landmark_media_get_via(const LandmarkMedia *media);
+
+/**
+ * @brief Get the attribution text of the given #LandmarkEditorial
+ */
+LandmarkMedia *landmark_editorial_get_media(const LandmarkEditorial *editorial);
+
+/**
+ * @brief Get the description of the given #LandmarkEditorial
+ */
+gchar *landmark_editorial_get_description(const LandmarkEditorial *editorial);
+
+/**
+ * @brief Get the language of the given #LandmarkEditorial
+ */
+gchar *landmark_editorial_get_language(const LandmarkEditorial *editorial);
+
+/**
+ * @brief Free the given editorial
+ */
+void landmark_editorial_free (LandmarkEditorial *editorial);
+
+/**
+ * @brief Create a new #LandmarkEditorial
+ */
+LandmarkEditorial *landmark_editorial_new (void);
+
+/**
+ * @brief Copy the given editorial
+ */
+LandmarkEditorial *landmark_editorial_copy (const LandmarkEditorial *editorial);
+
+/**
+ * @brief Get the media of the given #LandmarkImage
+ */
+LandmarkMedia *landmark_image_get_media(const LandmarkImage *image);
+
+/**
+ * @brief Get the url of the given #LandmarkImage
+ */
+gchar *landmark_image_get_url(const LandmarkImage *image);
+
+/**
+ * @brief Get the id of the given #LandmarkImage
+ */
+gchar *landmark_image_get_id(const LandmarkImage *image);
+
+/**
+ * @brief Get the width of the given #LandmarkImage
+ */
+guint landmark_image_get_width(const LandmarkImage *image);
+
+/**
+ * @brief Get the height of the given #LandmarkImage
+ */
+guint landmark_image_get_height(const LandmarkImage *image);
+
+/**
+ * @brief Get the user of the given #LandmarkImage
+ */
+LandmarkLinkObject *landmark_image_get_image_user(const LandmarkImage *image);
+
+/**
+ * @brief Free the given image
+ */
+void landmark_image_free (LandmarkImage *image);
+
+/**
+ * @brief Create a new  #LandmarkLinkObject
+ */
+LandmarkImage *landmark_image_new (void);
+
+/**
+ * @brief Copy the given image
+ */
+LandmarkImage *landmark_image_copy (const LandmarkImage *image);
+
+
+/**
+ * @brief Get the editorial list of the given #LocationLandmark
+ */
+GList *location_landmark_get_editorial(const LocationLandmark *landmark);
+
+/**
+ * @brief Get the image list of the given #LocationLandmark
+ */
+GList *location_landmark_get_image(const LocationLandmark *landmark);
+
+/**
+ * @brief Get the media of the given #LandmarkReview
+ */
+LandmarkMedia *landmark_review_get_media(const LandmarkReview *review);
+
+/**
+ * @brief Get the date of the given #LandmarkReview
+ */
+gchar *landmark_review_get_date(const LandmarkReview *review);
+
+/**
+ * @brief Get the title of the given #LandmarkReview
+ */
+gchar *landmark_review_get_title(const LandmarkReview *review);
+
+/**
+ * @brief Get the rating  of the given #LandmarkReview
+ */
+gdouble landmark_review_get_rating(const LandmarkReview *review);
+
+/**
+ * @brief Get the description of the given #LandmarkReview
+ */
+gchar *landmark_review_get_description(const LandmarkReview *review);
+
+/**
+ * @brief Get the language of the given #LandmarkReview
+ */
+gchar *landmark_review_get_language(const LandmarkReview *review);
+
+/**
+ * @brief Get the user of the given #LandmarkReview
+ */
+LandmarkLinkObject *landmark_review_get_review_user(const LandmarkReview *review);
+
+/**
+ * @brief Free the given editorial
+ */
+void landmark_review_free (LandmarkReview *review);
+
+/**
+ * @brief Create a new  #LandmarkReview
+ */
+LandmarkReview *landmark_review_new (void);
+
+/**
+ * @brief Copy the given review
+ */
+LandmarkReview *landmark_review_copy (const LandmarkReview *review);
+
+/**
+ * @brief Get the review list of the given #LocationLandmark
+ */
+GList *location_landmark_get_review(const LocationLandmark *landmark);
+
+/**
+ * @brief Get the related link of the given #LocationLandmark
+ */
+LandmarkLinkObject *location_landmark_get_related(const LocationLandmark *landmark);
+
+/**
+ * @brief Create a new  #LandmarkCategory
+ */
+LandmarkCategory *landmark_category_new (void);
+
+/**
+ * @brief Copy the given category
+ */
+LandmarkCategory *landmark_category_copy (const LandmarkCategory *category);
+
+/**
+ * @brief Free the given category
+ */
+void landmark_category_free (LandmarkCategory *category);
+
+/**
+ * @brief Get the id of the given #LandmarkCategory
+ */
+gchar *landmark_category_get_id (const LandmarkCategory *category);
+
+/**
+ * @brief Get the name of the given #LandmarkCategory
+ */
+gchar *landmark_category_get_name (const LandmarkCategory *category);
+
+/**
+ * @brief Get the url of the given #LandmarkCategory
+ */
+gchar *landmark_category_get_url (const LandmarkCategory *category);
+
+/**
+ * @brief Get the subcategories list of the given #LandmarkCategory
+ */
+GList *landmark_category_get_subcategories (const LandmarkCategory *category);
+
+/**
   * @} @}
   */
 

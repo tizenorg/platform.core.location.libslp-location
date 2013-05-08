@@ -137,17 +137,21 @@ location_map_get_address_from_position (LocationMapObject *obj,
 EXPORT_API int
 location_map_get_position_from_address_async (LocationMapObject *obj,
 	const LocationAddress *address,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 
 	int ret = LOCATION_ERROR_NONE;
 	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	ret = location_map_ielement_get_geocode_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref, callback, userdata);
+	ret = location_map_ielement_get_geocode_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref,pref, callback, userdata,req_id);
 	location_map_pref_free(svc_pref);
 
 	return ret;
@@ -157,36 +161,53 @@ location_map_get_position_from_address_async (LocationMapObject *obj,
 EXPORT_API int
 location_map_get_position_from_freeformed_address_async (LocationMapObject *obj,
 	const gchar *address,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
 
 	int ret = LOCATION_ERROR_NONE;
 	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	ret = location_map_ielement_get_geocode_freeform_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref, callback, userdata);
+	ret = location_map_ielement_get_geocode_freeform_async (LOCATION_MAP_IELEMENT(obj), address, svc_pref,pref, callback, userdata,req_id);
 	location_map_pref_free(svc_pref);
 
 	return ret;
 }
 
 EXPORT_API int
+location_map_cancel_geocode_request (LocationMapObject *obj, guint req_id)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
+
+	return location_map_ielement_cancel_geocode_request (LOCATION_MAP_IELEMENT(obj), req_id);
+}
+
+EXPORT_API int
 location_map_get_address_from_position_async (LocationMapObject *obj,
 	const LocationPosition *position,
 	LocationAddressCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (G_OBJECT_TYPE(obj) == MAP_TYPE_SERVICE, LOCATION_ERROR_NOT_AVAILABLE);
 	g_return_val_if_fail (is_connected_network(), LOCATION_ERROR_NETWORK_NOT_CONNECTED);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
 
 	int ret = LOCATION_ERROR_NONE;
 	LocationMapPref *svc_pref = location_map_get_service_pref (obj);
 
-	ret = location_map_ielement_get_reversegeocode_async (LOCATION_MAP_IELEMENT(obj), position, svc_pref, callback, userdata);
+	ret = location_map_ielement_get_reversegeocode_async (LOCATION_MAP_IELEMENT(obj), position, svc_pref, callback, userdata,req_id);
 	location_map_pref_free(svc_pref);
 
 	return ret;

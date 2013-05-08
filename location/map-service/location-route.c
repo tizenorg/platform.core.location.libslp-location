@@ -724,7 +724,9 @@ location_route_set_origin (LocationRoute *route, const LocationPosition* origin)
 		route->origin = NULL;
 	}
 
-	if (origin) route->origin = location_position_copy(origin);
+	if (origin) {
+		route->origin = location_position_copy(origin);
+	}
 
 	return TRUE;
 }
@@ -887,7 +889,9 @@ location_route_copy (const LocationRoute *route)
 
 	g_list_foreach(route->segment, route_segment_foreach_copy, new_route);
 
-	if (route->properties) g_hash_table_foreach (route->properties, route_property_copy_cb, new_route);
+	if (route->properties) {
+		g_hash_table_foreach (route->properties, route_property_copy_cb, new_route);
+	}
 
 	return new_route;
 }
@@ -2325,6 +2329,21 @@ EXPORT_API gboolean location_route_element_set_element_travel_time(LocationRoadE
 	return TRUE;
 }
 
+EXPORT_API gboolean location_route_element_set_eta_validity(LocationRoadElement *element, RouteETAValidity eta_validity)
+{
+	g_return_val_if_fail (element, FALSE);
+
+	element->ETA_validity = eta_validity;
+	return TRUE;
+}
+
+EXPORT_API RouteETAValidity location_route_element_get_eta_validity(const LocationRoadElement *element)
+{
+	g_return_val_if_fail (element, FALSE);
+
+	return element->ETA_validity;
+}
+
 EXPORT_API gchar *location_route_element_get_transit_destination(const LocationRoadElement *element)
 {
 	g_return_val_if_fail (element, NULL);
@@ -2521,7 +2540,7 @@ EXPORT_API LocationRouteTransitStop *location_route_element_get_transit_arrival_
 
 EXPORT_API gboolean location_route_element_set_transit_arrival_station(LocationRoadElement *element, const LocationRouteTransitStop *arrival_stop)
 {
-	g_return_val_if_fail (element, NULL);
+	g_return_val_if_fail (element, FALSE);
 
 	if (element->transit_arrival_station) {
 		location_route_transit_stop_free(element->transit_arrival_station);

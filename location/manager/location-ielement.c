@@ -175,3 +175,10 @@ location_ielement_get_last_velocity (LocationIElement *self,
 	g_return_val_if_fail (LOCATION_IELEMENT_GET_INTERFACE (self)->get_last_velocity, LOCATION_ERROR_NOT_AVAILABLE);
 	return LOCATION_IELEMENT_GET_INTERFACE (self)->get_last_velocity (self, velocity, accuracy);
 }
+
+int
+location_ielement_set_option (LocationIElement *self, const char *option)
+{
+	g_return_val_if_fail (LOCATION_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
+	return LOCATION_IELEMENT_GET_INTERFACE (self)->set_option (self, option);
+}

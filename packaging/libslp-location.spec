@@ -1,6 +1,6 @@
 Name:       libslp-location
 Summary:    Location Based Service
-Version:    0.4.7
+Version:    0.5.3
 Release:    1
 Group:      System/Libraries
 License:    Apache Licensc, Version 2.0

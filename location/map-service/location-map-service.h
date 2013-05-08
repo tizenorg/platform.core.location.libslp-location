@@ -229,7 +229,7 @@ void get_position_from_address(LocationMapObject* loc)
 }
  * @endcode
  */
-int location_map_get_position_from_address_async (LocationMapObject *obj, const LocationAddress *address, LocationPositionCB callback, gpointer userdata);
+ int location_map_get_position_from_address_async (LocationMapObject *obj,	const LocationAddress *address,const LocationGeocodePreference *pref,LocationPositionCB callback,gpointer userdata,guint * req_id);
 
 /**
  * @brief
@@ -397,7 +397,8 @@ void get_position_from_address(LocationMapObject* loc)
 }
  * @endcode
  */
-int location_map_get_position_from_freeformed_address_async (LocationMapObject *obj, const gchar *address, LocationPositionCB callback,	gpointer userdata);
+ int location_map_cancel_geocode_request (LocationMapObject *obj, guint req_id);
+int location_map_get_position_from_freeformed_address_async (LocationMapObject *obj, const gchar *address,const LocationGeocodePreference *pref, LocationPositionCB callback,gpointer userdata, guint * req_id);
 
 /**
  * @brief
@@ -511,7 +512,7 @@ void get_address_from_position(LocationMapObject* loc)
 }
  * @endcode
  */
-int location_map_get_address_from_position_async (LocationMapObject *obj, const LocationPosition *position,	LocationAddressCB callback, gpointer userdata);
+int location_map_get_address_from_position_async (LocationMapObject *obj, const LocationPosition *position,	LocationAddressCB callback, gpointer userdata, guint * req_id);
 
 /**
  * @brief Request a search service from service provider.

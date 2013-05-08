@@ -110,9 +110,6 @@ static void GetMethod(char str[STR_MAX], LocationMethod method)
 		case LOCATION_METHOD_GPS:
 			g_utf8_strncpy(str, "LOCATION_METHOD_GPS", STR_MAX);
 			break;
-		case LOCATION_METHOD_CPS:
-			g_utf8_strncpy(str, "LOCATION_METHOD_CPS", STR_MAX);
-			break;
 		case LOCATION_METHOD_WPS:
 			g_utf8_strncpy(str, "LOCATION_METHOD_WPS", STR_MAX);
 			break;
@@ -254,9 +251,6 @@ static void PrintProperty (LocationObject* loc)
 	else if (method == LOCATION_METHOD_WPS) {
 		g_object_get(loc, "pos-interval", &pos_interval, NULL);
 		g_object_get(loc, "vel-interval", &vel_interval, NULL);
-	}
-	else if (method == LOCATION_METHOD_CPS) {
-		g_object_get(loc, "pos-interval", &pos_interval, NULL);
 	}
 	g_printf("Position interval : [%u], Velocity interval [%u], Satellite interval [%u]\n", pos_interval, vel_interval, sat_interval);
 
@@ -463,7 +457,7 @@ int main(int argc, char** argv)
 				g_printf("Location object already existed: [0x%x]", (unsigned int)location_obj);
 				continue;
 			}
-			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2] LOCATION_METHOD_CPS[3]\n");
+			g_printf("LOCATION_METHOD_HYBRID[0] LOCATION_METHOD_GPS[1] LOCATION_METHOD_WPS[2]\n");
 			g_printf("Select Location Method: ");
 			LocationMethod method = PromptInt();
 			location_obj = location_new(method);
@@ -616,7 +610,7 @@ int main(int argc, char** argv)
 			char input[8] = {0, };
 			gboolean is_supported = FALSE;
 
-			g_printf("0.Hybrid 1.GPS 2.WPS 3.CPS\n");
+			g_printf("0.Hybrid 1.GPS 2.WPS\n");
 			g_printf("Select Method :");
 			str = fgets(input, 8, stdin);
 			method = atoi(input);
@@ -632,11 +626,6 @@ int main(int argc, char** argv)
 				case LOCATION_METHOD_WPS:
 					is_supported = location_is_supported_method(LOCATION_METHOD_WPS);
 					break;
-
-				case LOCATION_METHOD_CPS:
-					is_supported = location_is_supported_method(LOCATION_METHOD_CPS);
-					break;
-
 				default:
 					break;
 

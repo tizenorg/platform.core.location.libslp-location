@@ -30,10 +30,13 @@
 
 struct _LocationMapPref {
 	gchar *provider_name;                ///< Name of the service provier
-    gchar *language;            ///< Language of the service preference.
-    gchar *country;				///< Country of the service preference.
-    gchar *distance_unit;          ///< Distance unit of the service preference.
-    GHashTable *properties;       ///< properties of the service preference.
+	gchar *language;            ///< Language of the service preference.
+	gchar *country;				///< Country of the service preference.
+	gchar *distance_unit;          ///< Distance unit of the service preference.
+	gchar* maps_key;		 ///< Maps Key of the service preference.
+	GHashTable *properties;       ///< properties of the service preference.
+
+	ConnectivityMode connectivity_mode;  	///<Connection mode tells whether to search online, offline or both.
 };
 
 EXPORT_API GList *
@@ -163,6 +166,36 @@ location_map_pref_set_property (LocationMapPref *pref, gconstpointer key, gconst
 	} else g_hash_table_remove (pref->properties, key);
 
 	return TRUE;
+}
+
+/**
+ * @brief Set maps key to be used in the service request.
+ */
+EXPORT_API gboolean 
+location_map_pref_set_maps_key(LocationMapPref *pref, const char* maps_key)
+{
+	g_return_val_if_fail (pref, FALSE);
+	g_return_val_if_fail (maps_key, FALSE);
+
+	if (pref->maps_key) {
+		g_free (pref->maps_key);
+		pref->maps_key = NULL;
+	}
+
+	if (maps_key) pref->maps_key = g_strdup(maps_key);
+
+	return TRUE;
+}
+
+/**
+ * @brief Get maps key to be used in the service request.
+ */
+EXPORT_API gchar *
+location_map_pref_get_maps_key(const LocationMapPref *pref)
+{
+	g_return_val_if_fail (pref, NULL);
+
+	return pref->maps_key;
 }
 
 EXPORT_API LocationMapPref *

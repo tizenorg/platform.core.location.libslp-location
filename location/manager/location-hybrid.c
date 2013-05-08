@@ -36,10 +36,8 @@
 
 #include "location-gps.h"
 #include "location-wps.h"
-#include "location-cps.h"
 
 typedef struct _LocationHybridPrivate {
-	gboolean is_started;
 	gboolean gps_enabled;
 	gboolean wps_enabled;
 	guint pos_updated_timestamp;
@@ -233,7 +231,6 @@ _velocity_timeout_cb (gpointer data)
 	return TRUE;
 }
 
-
 static void
 location_hybrid_state_cb (keynode_t *key, gpointer self)
 {
@@ -300,18 +297,27 @@ hybrid_service_updated (GObject *obj,
 		}
 
 	}
-	else if ((g_type == LOCATION_TYPE_WPS || g_type == LOCATION_TYPE_CPS) && location_setting_get_int (VCONFKEY_LOCATION_WPS_STATE) == VCONFKEY_LOCATION_WPS_SEARCHING) {
-		LOCATION_LOGD ("Searching WPS or CPS");
+	else if (g_type == LOCATION_TYPE_WPS && location_setting_get_int (VCONFKEY_LOCATION_WPS_STATE) == VCONFKEY_LOCATION_WPS_SEARCHING) {
+		LOCATION_LOGD ("Searching WPS");
 		return;
 	}
 
 	if (hybrid_compare_g_type_method(priv, g_type)) {
 		LocationAccuracy *acc = (LocationAccuracy*)accuracy;
 		if (type == POSITION_UPDATED) {
-			position_signaling(self, signals, &(priv->enabled), priv->pos_interval, TRUE, &(priv->pos_updated_timestamp), &(priv->pos), &(priv->acc), priv->boundary_list, pos, acc);
+			if (priv->pos) location_position_free(priv->pos);
+			if (priv->acc) location_accuracy_free(priv->acc);
+			priv->pos = location_position_copy(pos);
+			priv->acc = location_accuracy_copy(acc);
+			if (!priv->enabled) {
+				enable_signaling(self, signals, &(priv->enabled), TRUE, pos->status);
+			}
+			position_signaling(self, signals, priv->pos_interval, &(priv->pos_updated_timestamp), priv->boundary_list, pos, acc);
 			LOCATION_LOGW("Position updated. timestamp [%d]", priv->pos->timestamp);
 		} else if (type == VELOCITY_UPDATED) {
-			velocity_signaling(self, signals, &(priv->enabled), priv->vel_interval, TRUE, &(priv->vel_updated_timestamp), &(priv->vel), vel, acc);
+			if (priv->vel) location_velocity_free(priv->vel);
+			priv->vel = location_velocity_copy(vel);
+			velocity_signaling(self, signals, priv->vel_interval, &(priv->vel_updated_timestamp), vel, acc);
 			LOCATION_LOGW("Velocity updated. timestamp [%d]", priv->vel->timestamp);
 		}
 
@@ -337,9 +343,6 @@ hybrid_service_enabled (GObject *obj,
 		return;
 	}
 	hybrid_get_update_method(priv);
-	if(priv->gps_enabled || priv->wps_enabled)
-		enable_signaling(self, signals, &(priv->enabled), TRUE, status);
-
 }
 
 static void
@@ -369,9 +372,15 @@ location_hybrid_start (LocationHybrid *self)
 
 	int ret_gps = LOCATION_ERROR_NOT_AVAILABLE;
 	int ret_wps = LOCATION_ERROR_NOT_AVAILABLE;
+	gboolean gps_started = FALSE;
+	gboolean wps_started = FALSE;
 
 	LocationHybridPrivate* priv = GET_PRIVATE(self);
-	if (priv->is_started == TRUE)
+
+	g_object_get(priv->gps, "is_started", &gps_started, NULL);
+	g_object_get(priv->wps, "is_started", &wps_started, NULL);
+
+	if ((gps_started == TRUE) || (wps_started == TRUE))
 		return LOCATION_ERROR_NONE;
 
 	if (priv->gps) ret_gps = location_start(priv->gps);
@@ -387,8 +396,6 @@ location_hybrid_start (LocationHybrid *self)
 		}
 	}
 
-	priv->is_started = TRUE;
-
 	if (priv->set_noti == FALSE) {
 		location_setting_add_notify (VCONFKEY_LOCATION_POSITION_STATE, location_hybrid_state_cb, self);
 		priv->set_noti = TRUE;
@@ -403,16 +410,21 @@ location_hybrid_stop (LocationHybrid *self)
 	LOCATION_LOGD("location_hybrid_stop");
 
 	LocationHybridPrivate* priv = GET_PRIVATE(self);
-	if (priv->is_started == FALSE)
-		return LOCATION_ERROR_NONE;
 
 	int ret_gps = LOCATION_ERROR_NOT_AVAILABLE;
 	int ret_wps = LOCATION_ERROR_NOT_AVAILABLE;
+	gboolean gps_started = FALSE;
+	gboolean wps_started = FALSE;
+
+	g_object_get(priv->gps, "is_started", &gps_started, NULL);
+	g_object_get(priv->wps, "is_started", &wps_started, NULL);
+
+	if ((gps_started == FALSE) && (wps_started == FALSE)) {
+		return LOCATION_ERROR_NONE;
+	}
 
 	if (priv->gps) ret_gps = location_stop(priv->gps);
 	if (priv->wps) ret_wps = location_stop(priv->wps);
-
-	priv->is_started = FALSE;
 
 	if (ret_gps != LOCATION_ERROR_NONE && ret_wps != LOCATION_ERROR_NONE)
 		return LOCATION_ERROR_NOT_AVAILABLE;
@@ -873,6 +885,24 @@ location_hybrid_get_last_satellite (LocationHybrid *self,
 	return ret;
 }
 
+static int
+location_hybrid_set_option (LocationHybrid *self, const char *option)
+{
+	LOCATION_LOGD("location_hybrid_set_option");
+	LocationHybridPrivate *priv = GET_PRIVATE (self);
+
+	int ret_gps = LOCATION_ERROR_NOT_AVAILABLE;
+	int ret_wps = LOCATION_ERROR_NOT_AVAILABLE;
+
+	if (priv->gps) ret_gps = location_set_option(priv->gps, option);
+	if (priv->wps) ret_wps = location_set_option(priv->wps, option);
+
+	if (ret_gps != LOCATION_ERROR_NONE && ret_wps != LOCATION_ERROR_NONE)
+		return LOCATION_ERROR_NOT_AVAILABLE;
+
+        return LOCATION_ERROR_NONE;
+}
+
 static void
 location_ielement_interface_init (LocationIElementInterface *iface)
 {
@@ -886,6 +916,7 @@ location_ielement_interface_init (LocationIElementInterface *iface)
 	iface->get_last_velocity = (TYPE_GET_VELOCITY)location_hybrid_get_last_velocity;
 	iface->get_satellite = (TYPE_GET_SATELLITE)location_hybrid_get_satellite;
 	iface->get_last_satellite = (TYPE_GET_SATELLITE)location_hybrid_get_last_satellite;
+	iface->set_option = (TYPE_SET_OPTION)location_hybrid_set_option;
 }
 
 static void
@@ -894,7 +925,6 @@ location_hybrid_init (LocationHybrid *self)
 	LOCATION_LOGD("location_hybrid_init");
 	LocationHybridPrivate* priv = GET_PRIVATE(self);
 
-	priv->is_started = FALSE;
 	priv->pos_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
 	priv->vel_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;
 	priv->sat_interval = LOCATION_UPDATE_INTERVAL_DEFAULT;

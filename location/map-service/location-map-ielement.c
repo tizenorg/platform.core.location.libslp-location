@@ -102,28 +102,46 @@ int
 location_map_ielement_get_geocode_async (LocationMapIElement *self,
 	const LocationAddress *address,
 	const LocationMapPref *svc_pref,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (LOCATION_MAP_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (callback, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_async (self, address, svc_pref, callback, userdata);
+	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_async (self, address, svc_pref, pref, callback, userdata,req_id);
 }
 
 int
 location_map_ielement_get_geocode_freeform_async (LocationMapIElement *self,
 	const gchar *address,
 	const LocationMapPref *svc_pref,
+	const LocationGeocodePreference *pref,
 	LocationPositionCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (LOCATION_MAP_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (address, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (callback, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (pref, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform_async (self, address, svc_pref, callback, userdata);
+
+	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_geocode_freeform_async (self, address, svc_pref,pref, callback, userdata,req_id);
+}
+
+int
+location_map_ielement_cancel_geocode_request (LocationMapIElement *self, guint req_id)
+{
+	g_return_val_if_fail (LOCATION_MAP_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->cancel_geocode_request, LOCATION_ERROR_NOT_AVAILABLE);
+
+	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->cancel_geocode_request (self, req_id);
 }
 
 int
@@ -131,13 +149,16 @@ location_map_ielement_get_reversegeocode_async (LocationMapIElement *self,
 	const LocationPosition *position,
 	const LocationMapPref *svc_pref,
 	LocationAddressCB callback,
-	gpointer userdata)
+	gpointer userdata,
+	guint * req_id)
 {
 	g_return_val_if_fail (LOCATION_MAP_IS_IELEMENT (self), LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (position, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (callback, LOCATION_ERROR_PARAMETER);
+	g_return_val_if_fail (req_id, LOCATION_ERROR_PARAMETER);
 	g_return_val_if_fail (LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_reversegeocode_async, LOCATION_ERROR_NOT_AVAILABLE);
-	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_reversegeocode_async (self, position, svc_pref, callback, userdata);
+
+	return LOCATION_MAP_IELEMENT_GET_INTERFACE (self)->get_reversegeocode_async (self, position, svc_pref, callback, userdata,req_id);
 }
 
 int

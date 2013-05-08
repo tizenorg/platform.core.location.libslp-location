@@ -42,6 +42,8 @@ int map_service_get_geocode_async (LocationMapIElement *self, const LocationAddr
 
 int map_service_get_geocode_freeform_async (LocationMapIElement *self, const gchar *address, const LocationMapPref *svc_pref, LocationPositionCB callback, gpointer userdata);
 
+int map_service_cancel_geocode_request (LocationMapIElement *self, guint req_id);
+
 int map_service_get_reversegeocode_async (LocationMapIElement *self, const LocationPosition *position, const LocationMapPref *svc_pref, LocationAddressCB callback, gpointer userdata);
 
 int map_service_search_poi (LocationMapIElement *self,

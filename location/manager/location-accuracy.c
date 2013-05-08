@@ -76,7 +76,7 @@ comp_double_reverse(double a, double b)
 	return 1;
 }
 
-int
+EXPORT_API int
 location_accuracy_level_compare(const LocationAccuracy *accuracy1, const LocationAccuracy *accuracy2)
 {
 	g_return_val_if_fail(accuracy1, -1);

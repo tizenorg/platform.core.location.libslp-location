@@ -16,6 +16,5 @@ liblocation_module_la_CFLAGS = \
 							-I${srcdir}/../${MANAGER_DIR} \
 							-I${srcdir}/../${MODULE_DIR} \
 							-I${srcdir}/../${MAP_SERVICE_DIR} \
-							-DLIBPREFIX=\"$(libdir)\" \
 							$(LOCATION_CFLAGS)
 

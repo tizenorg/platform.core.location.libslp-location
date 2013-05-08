@@ -60,14 +60,6 @@ typedef struct{
 	LocModWpsOps ops;
 } LocationWpsMod;
 
-typedef struct{
-	GMod* gmod;	
-	gpointer handler;
-	gpointer (*init)(LocModCpsOps* ops);
-	void (*shutdown)(gpointer handle);
-	LocModCpsOps ops;
-} LocationCpsMod;
-
 G_BEGIN_DECLS
 
 gboolean module_init(void);

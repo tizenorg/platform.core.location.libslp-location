@@ -35,7 +35,6 @@
 #include "location-hybrid.h"
 #include "location-gps.h"
 #include "location-wps.h"
-#include "location-cps.h"
 #include "location-position.h"
 #include "map-service.h"
 #include "module-internal.h"
@@ -73,8 +72,6 @@ location_new (LocationMethod method)
 			self = g_object_new (LOCATION_TYPE_WPS, NULL);
 			break;
 		case LOCATION_METHOD_CPS:
-			self = g_object_new (LOCATION_TYPE_CPS, NULL);
-			break;
 		default:
 			break;
 	}
@@ -99,10 +96,6 @@ location_start (LocationObject *obj)
 	g_return_val_if_fail (G_OBJECT_TYPE(obj) != MAP_TYPE_SERVICE, LOCATION_ERROR_PARAMETER);
 
 	int ret = LOCATION_ERROR_NONE;
-	if (location_application_enabled() == FALSE) {
-		LOCATION_LOGD("Application does not have permission");
-		return LOCATION_ERROR_NOT_ALLOWED;
-	}
 	ret = location_ielement_start (LOCATION_IELEMENT(obj));
 	if (ret != LOCATION_ERROR_NONE) LOCATION_LOGD("Fail to start. Error [%d]", ret);
 
@@ -138,8 +131,6 @@ location_is_supported_method(LocationMethod method)
 		is_supported = module_is_supported("wps");
 		break;
 	case LOCATION_METHOD_CPS:
-		is_supported = module_is_supported("cps");
-		break;
 	default:
 		break;
 	}
@@ -335,33 +326,17 @@ location_set_accessibility_state (LocationAccessState state)
 	return ret;
 }
 
-
 EXPORT_API int
 location_send_command(const char *cmd)
 {
 	g_return_val_if_fail (cmd, LOCATION_ERROR_PARAMETER);
-	int ret = LOCATION_ERROR_NOT_AVAILABLE;
+	return LOCATION_ACCESS_NONE;
+}
 
-	if (0 == g_strcmp0(cmd, "ADD_APPLIST")) {
-		if (location_application_add_app_to_applist () == FALSE) {
-			LOCATION_LOGD("Fail to add to applist");
-			ret = LOCATION_ERROR_UNKNOWN;
-		} else {
-			ret = LOCATION_ERROR_NONE;
-		}
-	} else if (0 == g_strcmp0(cmd, "ACCESSIBILITY:1")) {
-		ret = location_set_accessibility_state(LOCATION_ACCESS_ALLOWED);
-		if (ret != LOCATION_ERROR_NONE) {
-			LOCATION_LOGD("Fail to set ACCESSIBILITY:1 [ret = %d]", ret);
-		}
-	} else if (0 == g_strcmp0(cmd, "ACCESSIBILITY:0")) {
-		ret = location_set_accessibility_state(LOCATION_ACCESS_DENIED);
-		if (ret != LOCATION_ERROR_NONE) {
-			LOCATION_LOGD("Fail to set ACCESSIBILITY:0 [ret = %d]", ret);
-		}
-	} else {
-		LOCATION_LOGD("Invalid CMD[%s]", cmd);
-	}
-
+EXPORT_API int
+location_set_option (LocationObject *obj, const char *option)
+{
+	g_return_val_if_fail (obj, LOCATION_ERROR_PARAMETER);
+	int ret = LOCATION_ERROR_NONE;
 	return ret;
 }

@@ -61,6 +61,7 @@ typedef int (*TYPE_GET_POSITION)(LocationIElement *self, LocationPosition **posi
 typedef int (*TYPE_GET_POSITION_EXT)(LocationIElement *self, LocationPosition **position, LocationVelocity **velocity, LocationAccuracy **accuracy);
 typedef int (*TYPE_GET_VELOCITY)(LocationIElement *self, LocationVelocity **velocity, LocationAccuracy **accuracy);
 typedef int (*TYPE_GET_SATELLITE)(LocationIElement *self, LocationSatellite **satellite);
+typedef int (*TYPE_SET_OPTION)(LocationIElement *self, const char *option);
 
 struct _LocationIElementInterface
 {
@@ -76,6 +77,7 @@ struct _LocationIElementInterface
 	TYPE_GET_VELOCITY get_last_velocity;
 	TYPE_GET_SATELLITE get_satellite;
 	TYPE_GET_SATELLITE get_last_satellite;
+	TYPE_SET_OPTION set_option;
 };
 
 GType location_ielement_get_type (void);
@@ -88,6 +90,7 @@ int location_ielement_get_velocity (LocationIElement *self, LocationVelocity **v
 int location_ielement_get_last_velocity (LocationIElement *self, LocationVelocity **velocity, LocationAccuracy **accuracy);
 int location_ielement_get_satellite (LocationIElement *self, LocationSatellite **satellite);
 int location_ielement_get_last_satellite (LocationIElement *self, LocationSatellite **satellite);
+int location_ielement_set_option (LocationIElement *self, const char *option);
 
 G_END_DECLS
 
