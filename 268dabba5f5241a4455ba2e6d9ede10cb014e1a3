@@ -1,0 +1,8 @@
+Change-Id: I268dabba5f5241a4455ba2e6d9ede10cb014e1a3
+Code-Review+2: Anas Nashif
+Verified+1: Baptiste DURAND <baptiste.durand@eurogiciel.fr>
+Submitted-by: Anas Nashif
+Submitted-at: Tue, 28 May 2013 03:34:09 -0700
+Reviewed-on: https://review.tizen.org/gerrit/3678
+Project: platform/core/location/libslp-location
+Branch: refs/heads/tizen
