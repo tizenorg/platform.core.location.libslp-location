@@ -76,7 +76,7 @@ if ([test "x$enable_dlog" = xyes]); then
 		LOCATION_LIBS="$LOCATION_LIBS $DLOG_LIBS"
 	fi
 fi
-
+LOCATION_CFLAGS="$LOCATION_CFLAGS -DLIBPATH=\\\"$libdir\\\""
 # Generate files
 AC_CONFIG_FILES([
 location.pc
