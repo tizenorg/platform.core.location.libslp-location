@@ -5,6 +5,7 @@ Release:    1
 Group:      System/Libraries
 License:    Apache Licensc, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: 	libslp-location.manifest
 Requires(post):  /sbin/ldconfig
 Requires(post):  /usr/bin/vconftool
 Requires(postun):  /sbin/ldconfig
@@ -32,6 +33,7 @@ Location Based Service Development Package
 
 %prep
 %setup -q -n %{name}-%{version}
+cp %{SOURCE1001} .
 
 
 %build
@@ -71,10 +73,11 @@ vconftool set -t int db/location/setting/NetworkEnabled "0" -g 6514 -f
 
 
 %files
-%manifest libslp-location.manifest
+%manifest %{name}.manifest
 %{_libdir}/lib*.so*
 
 
 %files devel
+%manifest %{name}.manifest
 %{_includedir}/location/*.h
 %{_libdir}/pkgconfig/*.pc
