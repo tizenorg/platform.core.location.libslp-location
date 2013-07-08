@@ -1,0 +1,8 @@
+Change-Id: Ieb0121210e20814d0cd969c83709dcae0e547781
+Code-Review+2: Ryan Ware <ware@linux.intel.com>
+Verified+1: Ryan Ware <ware@linux.intel.com>
+Submitted-by: Ryan Ware <ware@linux.intel.com>
+Submitted-at: Mon, 08 Jul 2013 10:13:16 -0700
+Reviewed-on: https://review.tizen.org/gerrit/4429
+Project: platform/core/location/libslp-location
+Branch: refs/heads/tizen
