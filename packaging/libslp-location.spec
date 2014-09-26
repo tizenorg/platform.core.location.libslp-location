@@ -1,20 +1,21 @@
 Name:       libslp-location
 Summary:    Location Based Service
 Version:    0.5.3
-Release:    1
+Release:    0
 Group:      Location/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
-Source1001: 	libslp-location.manifest
-Requires(post):  /sbin/ldconfig
-Requires(post):  /usr/bin/vconftool
+Source1001: libslp-location.manifest
+Requires(post):    /sbin/ldconfig
+Requires(post):    /usr/bin/vconftool
 Requires(postun):  /sbin/ldconfig
-BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(dbus-glib-1)
-BuildRequires:  pkgconfig(gmodule-2.0)
-BuildRequires:  pkgconfig(dlog)
-BuildRequires:  pkgconfig(vconf)
-BuildRequires:  pkgconfig(json-glib-1.0)
+BuildRequires:     pkgconfig
+BuildRequires:     pkgconfig(glib-2.0)
+BuildRequires:     pkgconfig(dbus-glib-1)
+BuildRequires:     pkgconfig(gmodule-2.0)
+BuildRequires:     pkgconfig(dlog)
+BuildRequires:     pkgconfig(vconf)
+BuildRequires:     pkgconfig(json-glib-1.0)
 
 
 %description
@@ -22,12 +23,12 @@ Location Based Service Libraries
 
 
 %package devel
-Summary:    Location Based Service (Development files)
+Summary:    Location Based Service (dev)
 Group:      System/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 %description devel
-Location Based Service Development Package
+Location Based Service (Development Package).
 
 
 %prep
@@ -36,11 +37,9 @@ cp %{SOURCE1001} .
 
 
 %build
-
-./autogen.sh
+%autogen
 %configure  --enable-dlog --enable-debug
-
-make %{?jobs:-j%jobs}
+%__make %{?jobs:-j%jobs}
 
 
 %install
