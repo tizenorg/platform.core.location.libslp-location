@@ -7,8 +7,8 @@ MAP_SERVICE_DIR = map-service
 MODULE_DIR = module
 
 libSLP_location_la_SOURCES = \
-			${MANAGER_DIR}/location.c\
-			${MAP_SERVICE_DIR}/location-map-service.c
+			manager/location.c\
+			map-service/location-map-service.c
 
 
 libSLP_location_la_CFLAGS = \

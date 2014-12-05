@@ -5,7 +5,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([location])
-AM_INIT_AUTOMAKE([1.10.2 foreign -Wall -Werror])
+AM_INIT_AUTOMAKE([1.10.2 foreign -Wall -Werror subdir-objects])
 
 # Check programs for making executable
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
